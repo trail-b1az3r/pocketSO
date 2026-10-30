@@ -225,6 +225,9 @@ def install(config: dict) -> None:
         user_config = user_home / ".config/fastfetch"
         user_config.mkdir(parents=True, exist_ok=True)
         shutil.copy2(PROFILE / "fastfetch/config.jsonc", user_config / "config.jsonc")
+        shutil.chown(user_home / ".config", user=username, group=username)
+        shutil.chown(user_config, user=username, group=username)
+        shutil.chown(user_config / "config.jsonc", user=username, group=username)
         bashrc = user_home / ".bashrc"
         with bashrc.open("a", encoding="utf-8") as handle:
             handle.write("\\n# Pocketso Fastfetch\\nif [[ $- == *i* ]] && command -v fastfetch >/dev/null 2>&1; then\\n  fastfetch\\nfi\\n")
