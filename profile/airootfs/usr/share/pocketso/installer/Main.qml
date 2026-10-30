@@ -21,7 +21,6 @@ ApplicationWindow {
         target: installer
         function onDrivesChanged(payload) {
             window.driveItems = JSON.parse(payload)
-            driveBox.model = window.driveItems
             driveBox.currentIndex = -1
             window.selectedDrive = ""
         }
