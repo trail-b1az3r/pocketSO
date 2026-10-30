@@ -87,7 +87,11 @@ The GUI does not need `sudo`. When you start flashing, PolicyKit (`pkexec`) requ
 
 **The destination drive is erased completely.** Back up its contents first. The installer refuses to target the device containing the running installer and only offers removable/USB-transport disks. The privileged backend repeats these checks immediately before erasing and installs both bootloader targets to the selected USB only.
 
-## Boot the Pocketso Live ISO\n\nChoose **Pocketso Live ISO** in Pocketso Flasher, write it to a USB drive, and boot from it. It starts the Pocketso MATE desktop directly and does not install to another drive. This is a non-persistent live session; use the Installer ISO when you want to create the persistent Pocketso USB installation.\n\n## Important limitations
+## Boot the Pocketso Live ISO
+
+Choose **Pocketso Live ISO** in Pocketso Flasher, write it to a USB drive, and boot from it. It starts the Pocketso MATE desktop directly and does not install to another drive. This is a non-persistent live session; use the Installer ISO when you want to create the persistent Pocketso USB installation.
+
+## Important limitations
 
 - This is an initial installer implementation, not a claim of universal hardware compatibility. WiFi and graphics support depend on upstream Linux drivers and firmware.
 - Internet access is required during installation. This is not yet an offline installer.
