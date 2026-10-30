@@ -22,7 +22,7 @@ The application binary is installed to `/usr/bin/PocketsoFlasher`; its C++ USB w
 ## Use
 
 1. Launch `PocketsoFlasher` as your normal desktop user.
-2. Choose a local ISO or download the latest ISO attached to a GitHub Release.
+2. Choose a local ISO, or select either **Installer ISO** or **Pocketso Live ISO** in the image selector and download that variant from the latest GitHub Release.
 3. Select a USB/removable whole disk. The running system disk is filtered out.
 4. Type the exact device path shown by the drive selector.
 5. Confirm the erase warning.
@@ -30,7 +30,7 @@ The application binary is installed to `/usr/bin/PocketsoFlasher`; its C++ USB w
 
 The helper rechecks the target at write time, rejects partitions and non-USB/non-removable disks, refuses the running system disk, checks capacity, unmounts destination partitions, verifies that none remain mounted, writes with `dd`, and runs `sync`.
 
-## Runtime dependencies
+The installer image launches the graphical USB installer. The live image boots to the Pocketso desktop and does not launch an installer. Both are raw hybrid ISO images and use the same verified USB-writing safety checks.\n\n## Runtime dependencies
 
 - Qt 6 Core, Gui, Qml, Quick, Quick Controls and Network libraries and QML modules
 - PolicyKit (`pkexec` and a desktop authentication agent)
