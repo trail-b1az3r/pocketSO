@@ -207,7 +207,7 @@ class Window(QMainWindow):
             QMessageBox.warning(self, "Confirmation required", f"Type {target} exactly to confirm erasing that drive.")
             return
         answer = QMessageBox.warning(self, "Erase USB drive?",
-            f"This will permanently erase ALL data on:\\n\\n{target}\\n\\nContinue only if this is the correct USB drive.",
+            f"This will permanently erase ALL data on:\n\n{target}\n\nContinue only if this is the correct USB drive.",
             QMessageBox.StandardButton.Cancel | QMessageBox.StandardButton.Yes, QMessageBox.StandardButton.Cancel)
         if answer != QMessageBox.StandardButton.Yes:
             return
