@@ -196,7 +196,6 @@ def install(config: dict) -> None:
         ]
         emit(f"Installing Arch Linux base and {desktop.upper()} desktop packages. This may take a while.")
         run(["pacstrap", "-K", str(MOUNT), *base, *desktop_packages(desktop)])
-        run(["genfstab", "-U", str(MOUNT)],)
         fstab = output(["genfstab", "-U", str(MOUNT)])
         with (MOUNT / "etc/fstab").open("w") as handle:
             handle.write(fstab + "\n")
@@ -222,8 +221,10 @@ def install(config: dict) -> None:
         chroot("visudo", "-cf", "/etc/sudoers.d/10-wheel")
 
         emit("Installing Pocketso disk protection and enabling services.")
-        shutil.copy2(PROFILE / "disk-guard", MOUNT / "usr/local/sbin/pocketso-disk-guard")
-        (MOUNT / "usr/local/sbin/pocketso-disk-guard").chmod(0o755)
+        guard_path = MOUNT / "usr/local/libexec/pocketso-disk-guard"
+        guard_path.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(PROFILE / "disk-guard", guard_path)
+        guard_path.chmod(0o755)
         for name, destination in (
             ("pocketso-disk-guard.service", "etc/systemd/system/pocketso-disk-guard.service"),
             ("pocketso-disk-guard@.service", "etc/systemd/system/pocketso-disk-guard@.service"),
@@ -236,7 +237,7 @@ def install(config: dict) -> None:
             "[Unit]\nDescription=Protect non-system disks from writes (Pocketso)\n"
             "DefaultDependencies=no\nAfter=local-fs.target\n"
             "Before=udisks2.service display-manager.service graphical.target\n"
-            "ConditionPathExists=/usr/local/sbin/pocketso-disk-guard\n\n"
+            "ConditionPathExists=/usr/local/libexec/pocketso-disk-guard\n\n"
             "[Service]\nType=oneshot\n"
             "ExecStart=/usr/local/sbin/pocketso-disk-guard --all\nRemainAfterExit=yes\n\n"
             "[Install]\nWantedBy=multi-user.target\n"
