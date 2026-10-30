@@ -49,9 +49,11 @@ jobs:
               bash -n profile/airootfs/usr/local/bin/pocketso-flasher
               bash -n profile/airootfs/usr/share/pocketso/disk-guard
               shellcheck -S warning profile/airootfs/root/customize_airootfs.sh profile/airootfs/usr/local/bin/pocketso-flasher profile/airootfs/usr/share/pocketso/disk-guard
-              mkarchiso -v -w /tmp/pocketso-work -o out profile
-              cd out
-              sha256sum *.iso > SHA256SUMS
+              bash -n scripts/customize_live_airootfs.sh
+              shellcheck -S warning scripts/customize_live_airootfs.sh
+              ./build.sh --type all --manager arch --work /tmp/pocketso-work --out out
+              test -n "$(find out -maxdepth 1 -type f -name '*installer*.iso' -print -quit)"
+              test -n "$(find out -maxdepth 1 -type f -name '*live*.iso' -print -quit)"
             '
 
       - name: Upload installer and live ISOs
