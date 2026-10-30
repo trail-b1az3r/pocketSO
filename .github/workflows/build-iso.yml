@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   build-iso:
-    name: Build x86_64 installer ISO
+    name: Build x86_64 installer and live ISOs
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
@@ -54,10 +54,10 @@ jobs:
               sha256sum *.iso > SHA256SUMS
             '
 
-      - name: Upload installer ISO
+      - name: Upload installer and live ISOs
         uses: actions/upload-artifact@v4
         with:
-          name: pocketso-installer-iso
+          name: pocketso-installer-and-live-isos
           path: |
             out/*.iso
             out/SHA256SUMS
@@ -132,10 +132,10 @@ jobs:
     needs: [build-iso, build-native-flasher]
     runs-on: ubuntu-latest
     steps:
-      - name: Download ISO artifact
+      - name: Download installer and live ISO artifacts
         uses: actions/download-artifact@v4
         with:
-          name: pocketso-installer-iso
+          name: pocketso-installer-and-live-isos
           path: release-assets/iso
 
       - name: Download native Linux flasher
