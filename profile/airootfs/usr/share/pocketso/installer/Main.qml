@@ -183,7 +183,15 @@ ApplicationWindow {
                         id: passwordField
                         Layout.fillWidth: true
                         echoMode: TextInput.Password
-                        placeholderText: "At least 10 characters"
+                        placeholderText: "10+ characters; no colon"
+                        enabled: !window.installing
+                    }
+                    Label { text: "Confirm password"; color: "#c5d5e9" }
+                    TextField {
+                        id: passwordConfirmField
+                        Layout.fillWidth: true
+                        echoMode: TextInput.Password
+                        placeholderText: "Enter the password again"
                         enabled: !window.installing
                     }
                 }
@@ -208,7 +216,7 @@ ApplicationWindow {
                         text: window.installing ? "Installing Pocketso…" : "Erase drive and install Pocketso"
                         enabled: !window.installing && window.selectedDrive.length > 0
                                  && confirmField.text === window.selectedDrive
-                                 && passwordField.text.length >= 10
+                                 && passwordField.text.length >= 10\n                                 && passwordField.text === passwordConfirmField.text
                         highlighted: true
                         onClicked: {
                             installer.startInstall(
@@ -218,7 +226,7 @@ ApplicationWindow {
                                 passwordField.text,
                                 confirmField.text
                             )
-                            passwordField.text = ""
+                            passwordField.text = ""\n                            passwordConfirmField.text = ""
                         }
                     }
                     ProgressBar {
