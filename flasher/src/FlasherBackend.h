@@ -30,7 +30,7 @@ public:
 
     Q_INVOKABLE void refreshDrives();
     Q_INVOKABLE void setIsoPath(const QString &path);
-    Q_INVOKABLE void downloadLatest();
+    Q_INVOKABLE void downloadLatest(const QString &imageType);
     Q_INVOKABLE void flash(const QString &target, const QString &confirmation);
     Q_INVOKABLE void clearLog();
 
