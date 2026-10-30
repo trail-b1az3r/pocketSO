@@ -236,7 +236,6 @@ void FlasherBackend::downloadLatest()
         appendLog("Downloading " + assetName + "…");
         QNetworkRequest fileRequest{QUrl(assetUrl)};
         fileRequest.setHeader(QNetworkRequest::UserAgentHeader, "Pocketso-Flasher");
-        m_downloadDestination = destination;
         m_downloadOutput.setFileName(destination);
         if (!m_downloadOutput.open(QIODevice::WriteOnly)) {
             setBusy(false);
@@ -283,7 +282,7 @@ void FlasherBackend::downloadLatest()
 
 void FlasherBackend::flash(const QString &target, const QString &confirmation)
 {
-    if (m_busy || !m_downloadReply.isNull() || m_flashProcess.state() != QProcess::NotRunning) return;
+    if (m_busy || m_flashProcess.state() != QProcess::NotRunning) return;
     if (m_isoPath.isEmpty() || !QFileInfo(m_isoPath).isFile()) {
         emit flashFinished(false, "Choose or download a Pocketso ISO first.");
         return;
