@@ -4,6 +4,7 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QQuickStyle>
+#include <QUrl>
 
 int main(int argc, char *argv[])
 {
@@ -16,7 +17,7 @@ int main(int argc, char *argv[])
     FlasherBackend flasher;
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty("Flasher", &flasher);
-    engine.loadFromModule("Pocketso.Flasher", "Main");
+    engine.load(QUrl(QStringLiteral("qrc:/qt/qml/Pocketso/Flasher/Main.qml")));
 
     if (engine.rootObjects().isEmpty())
         return 1;
