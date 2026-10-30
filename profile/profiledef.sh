@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 iso_name="pocketso"
-iso_label="POCKETSO_$(date +%Y%m)"
+iso_label="POCKETSO_$(date --date="@${SOURCE_DATE_EPOCH:-$(date +%s)}" +%Y%m)"
 iso_publisher="Pocketso Linux"
 iso_application="Pocketso Linux USB Installer"
+iso_version="$(date --date="@${SOURCE_DATE_EPOCH:-$(date +%s)}" +%Y.%m.%d)"
 install_dir="pocketso"
-buildmodes=('iso')
-bootmodes=('bios.syslinux' 'uefi-iso')
+bootmodes=('bios.syslinux' 'uefi.grub')
 arch="x86_64"
 pacman_conf="pacman.conf"
 airootfs_image_type="squashfs"
