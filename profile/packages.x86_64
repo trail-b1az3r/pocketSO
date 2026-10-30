@@ -15,6 +15,7 @@ parted
 gptfdisk
 arch-install-scripts
 dialog
+python
 sudo
 git
 base-devel
