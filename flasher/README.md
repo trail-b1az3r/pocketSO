@@ -30,7 +30,9 @@ The application binary is installed to `/usr/bin/PocketsoFlasher`; its C++ USB w
 
 The helper rechecks the target at write time, rejects partitions and non-USB/non-removable disks, refuses the running system disk, checks capacity, unmounts destination partitions, verifies that none remain mounted, writes with `dd`, and runs `sync`.
 
-The installer image launches the graphical USB installer. The live image boots to the Pocketso desktop and does not launch an installer. Both are raw hybrid ISO images and use the same verified USB-writing safety checks.\n\n## Runtime dependencies
+The installer image launches the graphical USB installer. The live image boots to the Pocketso desktop and does not launch an installer. Both are raw hybrid ISO images and use the same verified USB-writing safety checks.
+
+## Runtime dependencies
 
 - Qt 6 Core, Gui, Qml, Quick, Quick Controls and Network libraries and QML modules
 - PolicyKit (`pkexec` and a desktop authentication agent)
