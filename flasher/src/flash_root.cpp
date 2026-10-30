@@ -93,6 +93,7 @@ int main(int argc, char *argv[])
     QTextStream(stdout) << "Writing ISO. Do not unplug the USB drive." << Qt::endl;
     QProcess writer;
     writer.setProgram("dd");
+    writer.setReadChannel(QProcess::StandardError);
     writer.setArguments({"if=" + iso, "of=" + target, "bs=4M", "status=progress", "conv=fsync"});
     writer.start();
     if (!writer.waitForStarted(5000)) return fail("Could not start dd.");
