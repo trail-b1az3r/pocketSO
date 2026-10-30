@@ -10,7 +10,7 @@ The configuration is installed for the live Pocketso account and copied to the i
 
 | Use | Color | Hex |
 | --- | --- | --- |
-| Main Pocketso accent | Green | `#A5E65A` |
+| Main Pocketso accent | Green | `#C5F36A` |
 | Dark body / device | Black | `#111411` |
 | Device edge / secondary text | Grey | `#858D86` |
 | USB 2.0 speed marker | White | `#F4F5F2` |
@@ -21,4 +21,4 @@ Violet is the Pocketso USB4 marker: it is distinct from USB 3.x blue while still
 
 ## Fastfetch
 
-The logo is plain ASCII, not an SVG. Fastfetch remains a real installed package; the custom text file is only its logo source. The profile shows Pocketso's green and white identity in terminal output while the device drawing uses a restrained black/grey outline.
+The logo is plain ASCII, not an SVG. Its `$1`, `$2`, and `$3` markers are Fastfetch's native text-logo color placeholders. Fastfetch remains a real installed package; the custom text file is only its logo source. The profile shows Pocketso's green and white identity in terminal output while the device drawing uses a restrained black/grey outline.
