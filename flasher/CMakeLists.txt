@@ -14,8 +14,6 @@ qt_add_executable(PocketsoFlasher
     src/FlasherBackend.h
 )
 
-set_source_files_properties(qml/Main.qml PROPERTIES QT_RESOURCE_ALIAS Main.qml)
-
 qt_add_qml_module(PocketsoFlasher
     URI Pocketso.Flasher
     VERSION 1.0
