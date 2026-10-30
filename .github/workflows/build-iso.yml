@@ -2,7 +2,7 @@ name: Build Pocketso ISO
 
 on:
   push:
-    branches: [main, "feat/**"]
+    branches: [main]
     tags: ["v*"]
   pull_request:
   workflow_dispatch:
