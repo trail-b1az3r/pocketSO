@@ -1,0 +1,65 @@
+name: Build Pocketso ISO
+
+on:
+  push:
+    branches: [main, "feat/**"]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-iso:
+    name: Build x86_64 installer ISO
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
+    timeout-minutes: 90
+    steps:
+      - name: Install build dependencies
+        run: |
+          pacman -Syu --noconfirm
+          pacman -S --noconfirm --needed archiso shellcheck git
+          pacman-key --init
+          pacman-key --populate archlinux
+
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Validate scripts
+        run: |
+          bash -n profile/airootfs/root/customize_airootfs.sh
+          bash -n profile/airootfs/usr/local/bin/pocketso-flasher
+          bash -n profile/airootfs/usr/share/pocketso/disk-guard
+          shellcheck -S warning profile/airootfs/root/customize_airootfs.sh profile/airootfs/usr/local/bin/pocketso-flasher profile/airootfs/usr/share/pocketso/disk-guard
+
+      - name: Build ISO
+        run: |
+          mkdir -p out
+          mkarchiso -v -w /tmp/pocketso-work -o out profile
+
+      - name: Generate checksums
+        run: |
+          cd out
+          sha256sum *.iso > SHA256SUMS
+
+      - name: Upload installer ISO
+        uses: actions/upload-artifact@v4
+        with:
+          name: pocketso-installer-iso
+          path: |
+            out/*.iso
+            out/SHA256SUMS
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Publish tagged release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            out/*.iso
+            out/SHA256SUMS
+          generate_release_notes: true
