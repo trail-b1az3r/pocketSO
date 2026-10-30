@@ -4,6 +4,9 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QProcess>
+#include <QSet>
+#include <QTextStream>
+#include <unistd.h>
 #include <QRegularExpression>
 #include <QStringList>
 
