@@ -4,9 +4,16 @@ set -Eeuo pipefail
 MODE="${1:---all}"
 DEVICE="${2:-}"
 ROOT_SOURCE="$(findmnt -nro SOURCE / 2>/dev/null || true)"
-[[ -n "$ROOT_SOURCE" ]] || exit 0
 ROOT_SOURCE="${ROOT_SOURCE%%\[*}"
 [[ -b "$ROOT_SOURCE" ]] || ROOT_SOURCE="$(findfs "$ROOT_SOURCE" 2>/dev/null || true)"
+
+# In the live ISO, / is an overlay. Use the mounted ISO boot medium as the
+# protected system device instead, so the installer USB remains writable.
+if [[ ! -b "$ROOT_SOURCE" ]]; then
+  ROOT_SOURCE="$(findmnt -nro SOURCE /run/archiso/bootmnt 2>/dev/null || true)"
+  ROOT_SOURCE="${ROOT_SOURCE%%\[*}"
+  [[ -b "$ROOT_SOURCE" ]] || ROOT_SOURCE="$(findfs "$ROOT_SOURCE" 2>/dev/null || true)"
+fi
 [[ -b "$ROOT_SOURCE" ]] || exit 0
 ROOT_PARENT="$(lsblk -ndo PKNAME "$ROOT_SOURCE" 2>/dev/null | head -n1)"
 if [[ -n "$ROOT_PARENT" ]]; then ROOT_DISK="/dev/$ROOT_PARENT"; else ROOT_DISK="$ROOT_SOURCE"; fi
