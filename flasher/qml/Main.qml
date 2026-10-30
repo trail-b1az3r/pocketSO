@@ -92,7 +92,17 @@ ApplicationWindow {
                 Layout.rightMargin: 30
                 spacing: 16
 
-                Label { text: "1. Select an installer image"; color: "#c5f36a"; font.pixelSize: 17; font.bold: true }
+                Label { text: "1. Select an image type"; color: "#c5f36a"; font.pixelSize: 17; font.bold: true }
+                ComboBox {
+                    id: imageTypeBox
+                    Layout.fillWidth: true
+                    textRole: "text"
+                    valueRole: "value"
+                    model: [
+                        { text: "Installer ISO — installs Pocketso onto another USB", value: "installer" },
+                        { text: "Pocketso Live ISO — boots the desktop without installing", value: "live" }
+                    ]
+                }
                 Rectangle {
                     Layout.fillWidth: true
                     radius: 12
@@ -109,7 +119,7 @@ ApplicationWindow {
                             Label { text: Flasher.isoPath.length ? "ISO selected" : "No ISO selected"; color: "#f4f5f2"; font.bold: true }
                             Label {
                                 Layout.fillWidth: true
-                                text: Flasher.isoPath.length ? Flasher.isoPath : "Choose a downloaded ISO or get the latest release."
+                                text: Flasher.isoPath.length ? Flasher.isoPath : "Choose a local ISO, or download the selected image type from the latest release."
                                 color: "#9ba69a"
                                 elide: Text.ElideMiddle
                             }
@@ -122,7 +132,7 @@ ApplicationWindow {
                             text: "Download latest"
                             highlighted: true
                             enabled: !Flasher.busy
-                            onClicked: Flasher.downloadLatest()
+                            onClicked: Flasher.downloadLatest(imageTypeBox.currentValue)
                         }
                     }
                 }
