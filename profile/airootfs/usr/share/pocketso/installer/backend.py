@@ -230,7 +230,7 @@ def install(config: dict) -> None:
         shutil.chown(user_config / "config.jsonc", user=username, group=username)
         bashrc = user_home / ".bashrc"
         with bashrc.open("a", encoding="utf-8") as handle:
-            handle.write("\\n# Pocketso Fastfetch\\nif [[ $- == *i* ]] && command -v fastfetch >/dev/null 2>&1; then\\n  fastfetch\\nfi\\n")
+            handle.write("\n# Pocketso Fastfetch\nif [[ $- == *i* ]] && command -v fastfetch >/dev/null 2>&1; then\n  fastfetch\nfi\n")
 
         # The builder writes this marker only for package-manager option 2.
         manager = PACKAGE_MANAGER_FILE.read_text(encoding="utf-8").strip() if PACKAGE_MANAGER_FILE.is_file() else "arch"
