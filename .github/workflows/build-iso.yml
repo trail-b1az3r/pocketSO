@@ -2,7 +2,7 @@ name: Build Pocketso ISO
 
 on:
   push:
-    branches: [main, "feat/**"]
+    branches: [main]
     tags: ["v*"]
   pull_request:
   workflow_dispatch:
@@ -32,9 +32,14 @@ jobs:
             archlinux:latest \
             bash -euxo pipefail -c '
               pacman -Syu --noconfirm
-              pacman -S --noconfirm --needed archiso shellcheck git grub
+              pacman -S --noconfirm --needed archiso shellcheck git grub python pyside6 qt6-declarative
               pacman-key --init
               pacman-key --populate archlinux
+              python -m py_compile profile/airootfs/usr/share/pocketso/installer/app.py profile/airootfs/usr/share/pocketso/installer/backend.py scripts/check-installer-packages.py
+              python scripts/check-installer-packages.py
+              python scripts/check-installer-qml.py
+              python -c "from PySide6.QtCore import QObject; from PySide6.QtQml import QQmlApplicationEngine"
+              bash -n profile/airootfs/usr/local/bin/pocketso-installer
               bash -n profile/airootfs/root/customize_airootfs.sh
               bash -n profile/airootfs/usr/local/bin/pocketso-flasher
               bash -n profile/airootfs/usr/share/pocketso/disk-guard
