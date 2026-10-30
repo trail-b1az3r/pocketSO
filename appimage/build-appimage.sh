@@ -2,9 +2,10 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
-rm -rf build/appimage dist/PocketsoFlasher AppDir
-python -m PyInstaller --noconfirm --clean --windowed --name PocketsoFlasher --collect-all PySide6 appimage/pocketso_flasher.py
-python -m PyInstaller --noconfirm --clean --onefile --console --name pocketso-flash-root appimage/pocketso-flash-root
+rm -rf build/appimage dist/PocketsoFlasher dist/pocketso-flash-root AppDir
+mkdir -p build/appimage
+python -m PyInstaller --noconfirm --clean --windowed --name PocketsoFlasher --collect-all PySide6 --collect-all shiboken6 --specpath build/appimage --workpath build/appimage/work/gui --distpath dist appimage/pocketso_flasher.py
+python -m PyInstaller --noconfirm --clean --onefile --console --name pocketso-flash-root --specpath build/appimage --workpath build/appimage/work/helper --distpath dist appimage/pocketso-flash-root
 mkdir -p AppDir/usr/bin AppDir/usr/libexec AppDir/usr/share/applications AppDir/usr/share/icons/hicolor/scalable/apps
 cp -a dist/PocketsoFlasher AppDir/usr/bin/
 cp dist/pocketso-flash-root AppDir/usr/libexec/pocketso-flash-root
