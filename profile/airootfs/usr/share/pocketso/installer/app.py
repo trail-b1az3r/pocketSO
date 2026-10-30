@@ -122,9 +122,9 @@ class InstallerBridge(QObject):
 
     def _run_backend(self, config: dict) -> None:
         try:
-            self.logLine.emit("Requesting administrator permission…")
+            self.logLine.emit("Starting the privileged installer backend…")
             process = subprocess.Popen(
-                ["pkexec", "/usr/bin/python", str(BACKEND_PATH)],
+                ["sudo", "-n", "/usr/bin/python", str(BACKEND_PATH)],
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
