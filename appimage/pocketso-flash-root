@@ -75,7 +75,7 @@ def main():
         line = line.strip()
         if line:
             print(line, flush=True)
-            match = re.match(r"^(\\d+)\\s+bytes", line)
+            match = re.match(r"^(\d+)\s+bytes", line)
             if match:
                 percent = min(100, int(int(match.group(1)) * 100 / iso_size))
                 print(f"PROGRESS {percent}", flush=True)
