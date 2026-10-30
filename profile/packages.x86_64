@@ -28,6 +28,7 @@ pciutils
 usbutils
 lshw
 networkmanager
+network-manager-applet
 iwd
 wpa_supplicant
 dhcpcd
