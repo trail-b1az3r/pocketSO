@@ -4,12 +4,19 @@
     "type": "file",
     "source": "/usr/share/pocketso/fastfetch/pocketso.txt",
     "color": {
-      "1": "green",
-      "2": "white"
+      "1": "#C5F36A",
+      "2": "#F4F5F2",
+      "3": "#858D86"
+    },
+    "padding": {
+      "right": 2
     }
   },
   "display": {
-    "separator": "  "
+    "separator": "  ",
+    "color": {
+      "keys": "#C5F36A"
+    }
   },
   "modules": [
     "title",
