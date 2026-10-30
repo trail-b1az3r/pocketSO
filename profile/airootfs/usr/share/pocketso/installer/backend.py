@@ -105,9 +105,6 @@ def validate_target(target: str, confirmation: str) -> None:
         raise RuntimeError("Destination must be at least 30 GB.")
     if os.path.realpath(target) in protected_disks():
         raise RuntimeError("Safety block: destination contains the running installer or system.")
-    mounts = output(["lsblk", "-nrpo", "MOUNTPOINT", target])
-    if any(line.strip() for line in mounts.splitlines()):
-        raise RuntimeError("Unmount all destination partitions before installation.")
 
 
 def desktop_packages(desktop: str) -> list[str]:
@@ -161,6 +158,9 @@ def install(config: dict) -> None:
         parts = output(["lsblk", "-lnpo", "NAME", target]).splitlines()[1:]
         for part in parts:
             subprocess.run(["umount", part], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        mounts = output(["lsblk", "-nrpo", "MOUNTPOINT", target])
+        if any(line.strip() for line in mounts.splitlines()):
+            raise RuntimeError("Could not unmount every destination partition; no data was erased.")
 
         emit("Erasing partition signatures and creating the USB partition table.")
         run(["wipefs", "--all", "--force", target])
