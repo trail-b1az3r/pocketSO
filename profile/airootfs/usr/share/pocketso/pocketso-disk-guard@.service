@@ -1,6 +1,6 @@
 [Unit]
 Description=Protect newly attached disk %I (Pocketso)
-After=systemd-udevd.service
+After=local-fs.target systemd-udevd.service
 ConditionPathExists=/usr/local/libexec/pocketso-disk-guard
 
 [Service]
