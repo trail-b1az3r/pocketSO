@@ -2,6 +2,7 @@
 
 #include <QObject>
 #include <QVariantList>
+#include <QStringList>
 #include <QProcess>
 #include <QNetworkAccessManager>
 #include <QSaveFile>
