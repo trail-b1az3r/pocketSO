@@ -76,7 +76,7 @@ jobs:
       - name: Install AppImage build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y patchelf wget libfuse2
+          sudo apt-get install -y patchelf wget libfuse2 libegl1 libgl1 libxkbcommon0 libdbus-1-3 libxcb-cursor0
           python -m pip install --upgrade pip
           python -m pip install PySide6 PyInstaller
           python -m py_compile appimage/pocketso_flasher.py appimage/pocketso-flash-root
