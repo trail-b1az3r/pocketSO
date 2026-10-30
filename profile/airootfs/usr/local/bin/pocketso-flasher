@@ -45,7 +45,7 @@ device_parent() {
 BOOT_DISK="$(device_parent "$BOOT_SOURCE")"
 ROOT_DISK="$(device_parent "$ROOT_SOURCE")"
 
-mapfile -t DISKS < <(lsblk -J -p -b -d -o NAME,SIZE,TRAN,RM,TYPE | python -c 'import json,sys; data=json.load(sys.stdin); print("\\n".join(d["name"] for d in data["blockdevices"] if d.get("type") == "disk" and (d.get("tran") == "usb" or str(d.get("rm")) in ("1", "True", "true"))))')
+mapfile -t DISKS < <(lsblk -J -p -b -d -o NAME,SIZE,TRAN,RM,TYPE | python -c 'import json,sys; data=json.load(sys.stdin); print("\n".join(d["name"] for d in data["blockdevices"] if d.get("type") == "disk" and (d.get("tran") == "usb" or str(d.get("rm")) in ("1", "True", "true"))))')
 MENU=()
 for disk in "${DISKS[@]}"; do
   [[ -b "$disk" ]] || continue
