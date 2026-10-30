@@ -35,32 +35,7 @@ jobs:
               pacman -S --noconfirm --needed archiso shellcheck git grub
               pacman-key --init
               pacman-key --populate archlinux
-              python - <<PY
-              import pathlib, re, shlex, subprocess, sys
-
-              source = pathlib.Path("profile/airootfs/usr/local/bin/pocketso-flasher").read_text()
-              base_match = re.search(r"^BASE_PKGS=\(([^)]*)\)", source, re.MULTILINE)
-              if not base_match:
-                  raise SystemExit("Could not extract BASE_PKGS from the USB flasher")
-              packages = set(shlex.split(base_match.group(1)))
-              desktop_matches = re.findall(
-                  r"^\s*(?:mate|kde|both)\) DESKTOP_PKGS=\(([^)]*)\)",
-                  source,
-                  re.MULTILINE,
-              )
-              if len(desktop_matches) != 3:
-                  raise SystemExit(f"Expected all three desktop package lists, found {len(desktop_matches)}")
-              for group in desktop_matches:
-                  packages.update(shlex.split(group))
-              packages = sorted(packages)
-              print(f"Validating {len(packages)} unique target-system packages")
-              plan = subprocess.run(
-                  ["pacman", "-Sp", "--print-format", "%n", "--noconfirm", *packages],
-                  check=True, text=True, capture_output=True,
-              )
-              pathlib.Path("/tmp/pocketso-target-package-plan.txt").write_text(plan.stdout)
-              print(f"Resolved target install plan: {len(plan.stdout.splitlines())} packages including dependencies")
-              PY
+              python scripts/check-flasher-packages.py
               bash -n profile/airootfs/root/customize_airootfs.sh
               bash -n profile/airootfs/usr/local/bin/pocketso-flasher
               bash -n profile/airootfs/usr/share/pocketso/disk-guard
