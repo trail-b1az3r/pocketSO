@@ -55,6 +55,7 @@ class Worker(QObject):
     downloadDone = Signal(str)
     flashDone = Signal(bool, str)
     progress = Signal(int)
+    downloadFinished = Signal()
 
     def download_latest(self):
         try:
@@ -83,6 +84,8 @@ class Worker(QObject):
             self.downloadDone.emit(str(destination))
         except Exception as exc:
             self.log.emit(f"Download failed: {exc}")
+        finally:
+            self.downloadFinished.emit()
 
     def flash(self, iso_path, target, confirmation):
         try:
@@ -164,6 +167,7 @@ class Window(QMainWindow):
         self.setCentralWidget(root)
         self.worker.log.connect(self.log.append)
         self.worker.downloadDone.connect(self.set_iso)
+        self.worker.downloadFinished.connect(lambda: self.download.setEnabled(True))
         self.worker.flashDone.connect(self.flash_finished)
         self.worker.progress.connect(self.progress.setValue)
         self.refresh_drives()
