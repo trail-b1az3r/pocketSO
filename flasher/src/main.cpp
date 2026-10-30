@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
     FlasherBackend flasher;
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty("Flasher", &flasher);
-    engine.load(QUrl(QStringLiteral("qrc:/qt/qml/Pocketso/Flasher/qml/Main.qml")));
+    engine.load(QUrl(QStringLiteral("qrc:/qml/Main.qml")));
 
     if (engine.rootObjects().isEmpty())
         return 1;
