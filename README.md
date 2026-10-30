@@ -29,7 +29,7 @@ sudo mkarchiso -v -w /tmp/pocketso-work -o out profile
 
 The ISO will be written to `out/`.
 
-Every push, pull request and manual workflow dispatch runs the ISO build. CI also compiles the Python app/backend and checks the installer package names against current Arch repositories. Successful builds are uploaded as the `pocketso-installer-iso` artifact. A tag beginning with `v` also creates a GitHub Release containing the ISO and checksum.
+Every push to `main`, pull request and manual workflow dispatch runs the ISO build. CI also compiles the Python app/backend and checks the installer package names against current Arch repositories. Successful builds are uploaded as the `pocketso-installer-iso` artifact. A tag beginning with `v` also creates a GitHub Release containing the ISO and checksum.
 
 ## Install Pocketso
 
@@ -62,6 +62,7 @@ bash -n profile/airootfs/root/customize_airootfs.sh
 python -m py_compile profile/airootfs/usr/share/pocketso/installer/app.py
 python -m py_compile profile/airootfs/usr/share/pocketso/installer/backend.py
 python scripts/check-installer-packages.py
+python scripts/check-installer-qml.py
 ```
 
 See [docs/INSTALLER.md](docs/INSTALLER.md) for implementation and safety details.
