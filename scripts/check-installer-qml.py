@@ -19,7 +19,7 @@ class InstallerStub(QObject):
     def refreshDrives(self):
         self.drivesChanged.emit("[]")
 
-    @Slot(str, str, str, str, str)
+    @Slot(str, str, str, str, str, str)
     def startInstall(self, *_args):
         pass
 
