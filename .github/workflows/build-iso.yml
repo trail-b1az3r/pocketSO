@@ -37,6 +37,7 @@ jobs:
               pacman-key --populate archlinux
               python -m py_compile profile/airootfs/usr/share/pocketso/installer/app.py profile/airootfs/usr/share/pocketso/installer/backend.py scripts/check-installer-packages.py
               python scripts/check-installer-packages.py
+              python scripts/check-installer-qml.py
               python -c "from PySide6.QtCore import QObject; from PySide6.QtQml import QQmlApplicationEngine"
               bash -n profile/airootfs/usr/local/bin/pocketso-installer
               bash -n profile/airootfs/root/customize_airootfs.sh
