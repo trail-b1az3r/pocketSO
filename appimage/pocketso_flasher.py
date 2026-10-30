@@ -24,7 +24,7 @@ def list_usb_drives():
     except json.JSONDecodeError:
         return []
     protected = set()
-    for mount in ("/", "/boot", "/run/archiso/bootmnt"):
+    for mount in ("/", "/boot", "/boot/efi", "/efi", "/home", "/var", "/usr", "/opt", "/srv", "/run/archiso/bootmnt"):
         source = run_text(["findmnt", "-nro", "SOURCE", mount]).split("[", 1)[0]
         if source:
             rows = run_text(["lsblk", "-s", "-n", "-p", "-o", "NAME,TYPE", source])
