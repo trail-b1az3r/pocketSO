@@ -35,7 +35,7 @@ jobs:
               pacman -S --noconfirm --needed archiso shellcheck git grub
               pacman-key --init
               pacman-key --populate archlinux
-              python - <<'PY'
+              python - <<PY
               import pathlib, re, shlex, subprocess, sys
 
               source = pathlib.Path("profile/airootfs/usr/local/bin/pocketso-flasher").read_text()
