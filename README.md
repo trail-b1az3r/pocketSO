@@ -1,5 +1,7 @@
 # Pocketso Linux
 
+**Website:** [Pocketso on GitHub Pages](https://trail-b1az3r.github.io/pocketSO/)
+
 Pocketso is a portable, persistent Arch Linux installation designed to live entirely on a USB drive. It uses the host computer's CPU, memory, display, network and other supported hardware without installing to the host's internal storage.
 
 ## Current implementation
@@ -16,6 +18,10 @@ This repository builds a bootable Archiso installer. Boot it from one USB drive,
 - Disk Guard marks non-system internal disks read-only in both the live installer and installed system
 - A standalone Pocketso Flasher AppImage downloads the latest release ISO or flashes a local ISO to a USB drive
 - GitHub Actions builds the installer ISO and AppImage; tagged releases publish both
+
+## Project website
+
+The Pocketso website lives in `site/` and is deployed to GitHub Pages by `.github/workflows/pages.yml` whenever the site changes on `main`. The first deployment requires GitHub Pages to use **GitHub Actions** as its build and deployment source in the repository Pages settings.
 
 ## Build the ISO
 
