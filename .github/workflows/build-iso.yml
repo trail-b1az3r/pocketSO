@@ -88,6 +88,7 @@ jobs:
           test -x AppDir/AppRun
           test -x AppDir/usr/libexec/pocketso-flash-root
           test -x AppDir/usr/bin/PocketsoFlasher/PocketsoFlasher
+          QT_QPA_PLATFORM=offscreen timeout 5s AppDir/usr/bin/PocketsoFlasher/PocketsoFlasher || test $? -eq 124
 
       - name: Build AppImage
         run: |
