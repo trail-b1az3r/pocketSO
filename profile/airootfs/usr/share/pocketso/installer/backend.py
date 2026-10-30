@@ -239,7 +239,7 @@ def install(config: dict) -> None:
             "Before=udisks2.service display-manager.service graphical.target\n"
             "ConditionPathExists=/usr/local/libexec/pocketso-disk-guard\n\n"
             "[Service]\nType=oneshot\n"
-            "ExecStart=/usr/local/sbin/pocketso-disk-guard --all\nRemainAfterExit=yes\n\n"
+            "ExecStart=/usr/local/libexec/pocketso-disk-guard --all\nRemainAfterExit=yes\n\n"
             "[Install]\nWantedBy=multi-user.target\n"
         )
         if desktop == "kde":
