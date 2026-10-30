@@ -2,7 +2,7 @@
 
 ## Booting the installer
 
-The ISO is a live Archiso environment with MATE. Open **Pocketso USB Installer** from the desktop menu. The graphical frontend is written in Python with PySide6 and Qt Quick/QML; a separate privileged Python backend performs the installation after authentication through the desktop PolicyKit agent.
+The ISO is a live Archiso environment with MATE. Open **Pocketso USB Installer** from the desktop menu. The graphical frontend is written in Python with PySide6 and Qt Quick/QML; a separate privileged Python backend performs the installation through the live session's existing passwordless sudo policy.
 
 A legacy terminal-based `pocketso-flasher` remains available for troubleshooting. Connect to a network before installing.
 
@@ -16,7 +16,7 @@ A legacy terminal-based `pocketso-flasher` remains available for troubleshooting
 6. The backend creates the partition table, installs Arch, configures services and user account, builds yay as the unprivileged user, and installs GRUB to the USB.
 7. The UI streams command output and displays success/failure.
 
-The GUI does not run destructive commands itself. It requests privilege through `pkexec`; the backend receives its configuration over standard input and never places the account password in command-line arguments or log output.
+The GUI does not run destructive commands itself. It requests privilege with `sudo -n`, using the live session's existing NOPASSWD policy; the backend receives its configuration over standard input and never places the account password in command-line arguments or log output.
 
 ## Destination layout
 
