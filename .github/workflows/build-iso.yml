@@ -167,7 +167,7 @@ jobs:
 
   publish-release:
     name: Publish ISO and native Linux flasher release
-    if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.release_tag != '')
+    if: always() && needs.build-iso.result == 'success' && needs.build-native-flasher.result == 'success' && (needs.create-release-tag.result == 'success' || needs.create-release-tag.result == 'skipped') && (startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.release_tag != ''))
     needs: [build-iso, build-native-flasher, create-release-tag]
     runs-on: ubuntu-latest
     steps:
