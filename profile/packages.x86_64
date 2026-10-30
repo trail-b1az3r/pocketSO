@@ -16,6 +16,8 @@ gptfdisk
 arch-install-scripts
 dialog
 python
+pyside6
+qt6-declarative
 sudo
 git
 base-devel
