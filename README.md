@@ -1,5 +1,7 @@
 # Pocketso Linux
 
+**Website:** [Pocketso on GitHub Pages](https://trail-b1az3r.github.io/pocketSO/)
+
 Pocketso is a portable, persistent Arch Linux installation designed to live entirely on a USB drive. It uses the host computer's CPU, memory, display, network and other supported hardware without installing to the host's internal storage.
 
 ## Current implementation
@@ -14,7 +16,12 @@ This repository builds a bootable Archiso installer. Boot it from one USB drive,
 - Persistent ext4 root filesystem
 - Linux firmware, NetworkManager, iwd and common desktop hardware support
 - Disk Guard marks non-system internal disks read-only in both the live installer and installed system
-- GitHub Actions builds the installer ISO and publishes it as an artifact
+- A standalone Pocketso Flasher AppImage downloads the latest release ISO or flashes a local ISO to a USB drive
+- GitHub Actions builds the installer ISO and AppImage; tagged releases publish both
+
+## Project website
+
+The Pocketso website lives in `site/` and is deployed to GitHub Pages by `.github/workflows/pages.yml` whenever the site changes on `main`. The first deployment requires GitHub Pages to use **GitHub Actions** as its build and deployment source in the repository Pages settings.
 
 ## Build the ISO
 
@@ -29,7 +36,18 @@ sudo mkarchiso -v -w /tmp/pocketso-work -o out profile
 
 The ISO will be written to `out/`.
 
-Every push to `main`, pull request and manual workflow dispatch runs the ISO build. CI also compiles the Python app/backend and checks the installer package names against current Arch repositories. Successful builds are uploaded as the `pocketso-installer-iso` artifact. A tag beginning with `v` also creates a GitHub Release containing the ISO and checksum.
+Every push to `main`, pull request and manual workflow dispatch runs the ISO build. CI also compiles the Python app/backend and checks the installer package names against current Arch repositories. Successful builds are uploaded as the `pocketso-installer-iso` artifact. A tag beginning with `v` also creates a GitHub Release containing the ISO, AppImage and checksums.
+
+## Flash the installer USB from Linux
+
+Download the `PocketsoFlasher-x86_64.AppImage` file from the latest GitHub Release, or from the `pocketso-flasher-appimage` artifact on the Actions page. Make it executable and launch it:
+
+```bash
+chmod +x PocketsoFlasher-x86_64.AppImage
+./PocketsoFlasher-x86_64.AppImage
+```
+
+The app can download the latest published Pocketso ISO or use a local ISO. Select a USB device, type its exact device path, confirm the erase warning, and authorize the write. It refuses to flash the currently running system disk and requires a whole USB/removable drive. **The selected USB is erased completely.** See [appimage/README.md](appimage/README.md).
 
 ## Install Pocketso
 
@@ -63,6 +81,8 @@ python -m py_compile profile/airootfs/usr/share/pocketso/installer/app.py
 python -m py_compile profile/airootfs/usr/share/pocketso/installer/backend.py
 python scripts/check-installer-packages.py
 python scripts/check-installer-qml.py
+python -m py_compile appimage/pocketso_flasher.py appimage/pocketso-flash-root
+bash -n appimage/build-appimage.sh
 ```
 
 See [docs/INSTALLER.md](docs/INSTALLER.md) for implementation and safety details.

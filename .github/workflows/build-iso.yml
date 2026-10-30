@@ -59,11 +59,79 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-      - name: Publish tagged release
-        if: startsWith(github.ref, 'refs/tags/v')
+
+  build-appimage:
+    name: Build Pocketso Flasher AppImage
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install AppImage build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y patchelf wget libfuse2 libegl1 libgl1 libxkbcommon0 libdbus-1-3 libxcb-cursor0
+          python -m pip install --upgrade pip
+          python -m pip install PySide6 PyInstaller
+          python -m py_compile appimage/pocketso_flasher.py appimage/pocketso-flash-root
+          bash -n appimage/build-appimage.sh
+
+      - name: Assemble AppDir
+        run: |
+          bash appimage/build-appimage.sh
+          test -x AppDir/AppRun
+          test -x AppDir/usr/libexec/pocketso-flash-root
+          test -x AppDir/usr/bin/PocketsoFlasher/PocketsoFlasher
+          QT_QPA_PLATFORM=offscreen timeout 5s AppDir/usr/bin/PocketsoFlasher/PocketsoFlasher || test $? -eq 124
+
+      - name: Build AppImage
+        run: |
+          wget -O appimagetool.AppImage https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x appimagetool.AppImage
+          ARCH=x86_64 ./appimagetool.AppImage --appimage-extract-and-run AppDir PocketsoFlasher-x86_64.AppImage
+          chmod +x PocketsoFlasher-x86_64.AppImage
+          sha256sum PocketsoFlasher-x86_64.AppImage > PocketsoFlasher-x86_64.AppImage.sha256
+
+      - name: Upload AppImage
+        uses: actions/upload-artifact@v4
+        with:
+          name: pocketso-flasher-appimage
+          path: |
+            PocketsoFlasher-x86_64.AppImage
+            PocketsoFlasher-x86_64.AppImage.sha256
+          if-no-files-found: error
+          retention-days: 14
+
+  publish-release:
+    name: Publish ISO and AppImage release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [build-iso, build-appimage]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download ISO artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: pocketso-installer-iso
+          path: release-assets/iso
+
+      - name: Download AppImage artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: pocketso-flasher-appimage
+          path: release-assets/appimage
+
+      - name: Publish release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            out/*.iso
-            out/SHA256SUMS
+            release-assets/iso/*.iso
+            release-assets/iso/SHA256SUMS
+            release-assets/appimage/*.AppImage
+            release-assets/appimage/*.sha256
           generate_release_notes: true
