@@ -14,10 +14,9 @@ qt_add_executable(PocketsoFlasher
     src/FlasherBackend.h
 )
 
-qt_add_qml_module(PocketsoFlasher
-    URI Pocketso.Flasher
-    VERSION 1.0
-    QML_FILES qml/Main.qml
+qt_add_resources(PocketsoFlasher pocketso_flasher_qml
+    PREFIX "/"
+    FILES qml/Main.qml
 )
 
 target_link_libraries(PocketsoFlasher PRIVATE
