@@ -23,7 +23,7 @@ fail() {
 }
 
 [[ $EUID -eq 0 ]] || exec sudo "$0" "$@"
-for tool in dialog lsblk findmnt wipefs parted mkfs.fat mkfs.ext4 pacstrap arch-chroot grub-install grub-mkconfig blockdev; do
+for tool in dialog python lsblk findmnt wipefs parted mkfs.fat mkfs.ext4 pacstrap arch-chroot grub-install grub-mkconfig blockdev; do
   command -v "$tool" >/dev/null 2>&1 || fail "Required tool is missing: $tool"
 done
 
@@ -45,7 +45,7 @@ device_parent() {
 BOOT_DISK="$(device_parent "$BOOT_SOURCE")"
 ROOT_DISK="$(device_parent "$ROOT_SOURCE")"
 
-mapfile -t DISKS < <(lsblk -dpbno NAME,SIZE,TRAN,RM,TYPE | awk '$5=="disk" && ($3=="usb" || $4=="1") {print $1}')
+mapfile -t DISKS < <(lsblk -J -p -b -d -o NAME,SIZE,TRAN,RM,TYPE | python -c 'import json,sys; data=json.load(sys.stdin); print("\\n".join(d["name"] for d in data["blockdevices"] if d.get("type") == "disk" and (d.get("tran") == "usb" or str(d.get("rm")) in ("1", "True", "true"))))')
 MENU=()
 for disk in "${DISKS[@]}"; do
   [[ -b "$disk" ]] || continue
