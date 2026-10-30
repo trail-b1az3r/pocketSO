@@ -27,6 +27,13 @@ autologin-user-timeout=0
 autologin-session=mate
 EOF
 
+# Protect internal disks in the live installer before the desktop starts.
+install -D -m 0755 /usr/share/pocketso/disk-guard /usr/local/libexec/pocketso-disk-guard
+install -D -m 0644 /usr/share/pocketso/pocketso-disk-guard.service /etc/systemd/system/pocketso-disk-guard.service
+install -D -m 0644 /usr/share/pocketso/pocketso-disk-guard@.service /etc/systemd/system/pocketso-disk-guard@.service
+install -D -m 0644 /usr/share/pocketso/80-pocketso-disk-guard.rules /etc/udev/rules.d/80-pocketso-disk-guard.rules
+systemctl enable pocketso-disk-guard.service
+
 systemctl enable NetworkManager.service
 systemctl enable lightdm.service
 systemctl enable bluetooth.service
