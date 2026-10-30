@@ -65,58 +65,72 @@ jobs:
           retention-days: 14
 
 
-  build-appimage:
-    name: Build Pocketso Flasher AppImage
-    runs-on: ubuntu-22.04
+  build-native-flasher:
+    name: Build native QML and C++ Linux flasher
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
       - name: Check out source
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Install AppImage build dependencies
+      - name: Install Qt 6 and C++ build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y patchelf wget libfuse2 libegl1 libgl1 libxkbcommon0 libdbus-1-3 libxcb-cursor0
-          python -m pip install --upgrade pip
-          python -m pip install PySide6 PyInstaller
-          python -m py_compile appimage/pocketso_flasher.py appimage/pocketso-flash-root
-          bash -n appimage/build-appimage.sh
+          sudo apt-get install -y \
+            build-essential cmake ninja-build pkg-config \
+            qt6-base-dev qt6-declarative-dev qt6-declarative-dev-tools \
+            qml6-module-qtquick-controls qml6-module-qtquick-dialogs \
+            qml6-module-qtquick-layouts qml6-module-qtquick-window \
+            qml6-module-qtquick-templates qml6-module-qtqml-workerscript \
+            libpolkit-agent-1-0
 
-      - name: Assemble AppDir
+      - name: Configure and compile native executables
         run: |
-          bash appimage/build-appimage.sh
-          test -x AppDir/AppRun
-          test -x AppDir/usr/libexec/pocketso-flash-root
-          test -x AppDir/usr/bin/PocketsoFlasher/PocketsoFlasher
-          QT_QPA_PLATFORM=offscreen timeout 5s AppDir/usr/bin/PocketsoFlasher/PocketsoFlasher || test $? -eq 124
+          cmake -S flasher -B build/flasher -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=/usr
+          cmake --build build/flasher --parallel 2
+          DESTDIR="$GITHUB_WORKSPACE/package-root" cmake --install build/flasher
+          test -x package-root/usr/bin/PocketsoFlasher
+          test -x package-root/usr/libexec/pocketso-flash-root
+          ldd package-root/usr/bin/PocketsoFlasher
+          ldd package-root/usr/libexec/pocketso-flash-root
 
-      - name: Build AppImage
+      - name: Smoke test QML application
         run: |
-          wget -O appimagetool.AppImage https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
-          chmod +x appimagetool.AppImage
-          ARCH=x86_64 ./appimagetool.AppImage --appimage-extract-and-run AppDir PocketsoFlasher-x86_64.AppImage
-          chmod +x PocketsoFlasher-x86_64.AppImage
-          sha256sum PocketsoFlasher-x86_64.AppImage > PocketsoFlasher-x86_64.AppImage.sha256
+          set +e
+          QT_QPA_PLATFORM=offscreen timeout 8s package-root/usr/bin/PocketsoFlasher > flasher-smoke.log 2>&1
+          status=$?
+          set -e
+          if [ "$status" -ne 124 ] && [ "$status" -ne 0 ]; then
+            cat flasher-smoke.log
+            exit "$status"
+          fi
+          cat flasher-smoke.log
 
-      - name: Upload AppImage
+      - name: Package Linux executables and desktop integration
+        run: |
+          tar -C package-root -czf PocketsoFlasher-linux-x86_64.tar.gz \
+            usr/bin/PocketsoFlasher \
+            usr/libexec/pocketso-flash-root \
+            usr/share/applications/pocketso-flasher.desktop \
+            usr/share/icons/hicolor/scalable/apps/pocketso-flasher.svg
+          sha256sum PocketsoFlasher-linux-x86_64.tar.gz > PocketsoFlasher-linux-x86_64.tar.gz.sha256
+
+      - name: Upload native Linux executable
         uses: actions/upload-artifact@v4
         with:
-          name: pocketso-flasher-appimage
+          name: pocketso-flasher-linux-x86_64
           path: |
-            PocketsoFlasher-x86_64.AppImage
-            PocketsoFlasher-x86_64.AppImage.sha256
+            PocketsoFlasher-linux-x86_64.tar.gz
+            PocketsoFlasher-linux-x86_64.tar.gz.sha256
           if-no-files-found: error
           retention-days: 14
 
   publish-release:
-    name: Publish ISO and AppImage release
+    name: Publish ISO and native Linux flasher release
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: [build-iso, build-appimage]
+    needs: [build-iso, build-native-flasher]
     runs-on: ubuntu-latest
     steps:
       - name: Download ISO artifact
@@ -125,11 +139,11 @@ jobs:
           name: pocketso-installer-iso
           path: release-assets/iso
 
-      - name: Download AppImage artifact
+      - name: Download native Linux flasher
         uses: actions/download-artifact@v4
         with:
-          name: pocketso-flasher-appimage
-          path: release-assets/appimage
+          name: pocketso-flasher-linux-x86_64
+          path: release-assets/flasher
 
       - name: Publish release
         uses: softprops/action-gh-release@v2
@@ -137,6 +151,6 @@ jobs:
           files: |
             release-assets/iso/*.iso
             release-assets/iso/SHA256SUMS
-            release-assets/appimage/*.AppImage
-            release-assets/appimage/*.sha256
+            release-assets/flasher/*.tar.gz
+            release-assets/flasher/*.sha256
           generate_release_notes: true
