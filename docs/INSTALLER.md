@@ -21,7 +21,7 @@ The installer requires at least 30,000,000,000 bytes. It does not create a separ
 - The exact destination path must be typed before destructive operations.
 - The installer unmounts destination partitions, then erases the destination partition table.
 - GRUB BIOS and UEFI targets are both installed to the selected USB. UEFI uses `--no-nvram` and `--removable`, so the host firmware boot entries are not changed.
-- The installed Disk Guard identifies the disk containing the Pocketso root filesystem and sets every non-system internal disk read-only with `blockdev --setro`. A udev rule repeats protection for newly attached internal disks.
+- Disk Guard identifies the live ISO boot medium or installed Pocketso root disk and sets every non-system internal disk read-only with `blockdev --setro`. A udev rule repeats protection for newly attached internal disks. Other USB/removable drives remain writable.
 - The live installer does not enable Disk Guard, because it must be able to write to the destination USB.
 
 This protection is defense in depth, not a hardware write blocker. It cannot protect against firmware, another OS, a kernel compromise, or writes occurring before the installed service starts. Do not use this initial implementation as a forensic write blocker.
