@@ -104,7 +104,6 @@ partprobe "$TARGET"
 udevadm settle
 mapfile -t PARTS < <(lsblk -lnpo NAME "$TARGET" | tail -n +2)
 (("${#PARTS[@]}" == 3)) || fail "Could not detect the three newly created partitions."
-BIOS_PART="${PARTS[0]}"
 EFI_PART="${PARTS[1]}"
 ROOT_PART="${PARTS[2]}"
 
@@ -115,7 +114,7 @@ mkdir -p "$MOUNTPOINT/boot"
 mount "$EFI_PART" "$MOUNTPOINT/boot"
 
 dialog --title "Installing Arch Linux" --infobox "Downloading and installing the base system. This can take several minutes." 7 72
-BASE_PKGS=(base linux linux-lts linux-firmware archlinux-keyring grub efibootmgr dosfstools e2fsprogs networkmanager iwd wpa_supplicant sudo git base-devel dialog nano vim man-db man-pages texinfo mesa vulkan-icd-loader pipewire pipewire-alsa pipewire-pulse wireplumber bluez bluez-utils udisks2 gvfs gvfs-mtp gvfs-smb polkit firefox)
+BASE_PKGS=(base linux linux-lts linux-firmware archlinux-keyring grub efibootmgr dosfstools e2fsprogs networkmanager iwd wpa_supplicant sudo git base-devel go dialog nano vim man-db man-pages texinfo mesa vulkan-icd-loader pipewire pipewire-alsa pipewire-pulse wireplumber bluez bluez-utils udisks2 gvfs gvfs-mtp gvfs-smb polkit firefox)
 case "$DESKTOP" in
   mate) DESKTOP_PKGS=(xorg-server mate mate-extra lightdm lightdm-gtk-greeter mate-terminal) ;;
   kde) DESKTOP_PKGS=(plasma-meta konsole dolphin sddm xorg-server) ;;
