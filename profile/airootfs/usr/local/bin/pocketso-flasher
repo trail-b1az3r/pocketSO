@@ -152,7 +152,12 @@ else
 fi
 
 # Build yay as the unprivileged user; AUR build scripts are never run as root.
-arch-chroot "$MOUNTPOINT" runuser -u "$USERNAME" -- env HOME="/home/$USERNAME" bash -lc 'cd /tmp && git clone https://aur.archlinux.org/yay.git pocketso-yay && cd pocketso-yay && makepkg -si --noconfirm && cd / && rm -rf /tmp/pocketso-yay'
+YAY_DIR="/home/$USERNAME/pocketso-yay"
+arch-chroot "$MOUNTPOINT" runuser -u "$USERNAME" -- env HOME="/home/$USERNAME" bash -lc 'git clone https://aur.archlinux.org/yay.git "$HOME/pocketso-yay" && cd "$HOME/pocketso-yay" && makepkg -f --nodeps --noconfirm'
+YAY_PACKAGE="$(find "$MOUNTPOINT$YAY_DIR" -maxdepth 1 -type f -name 'yay-*.pkg.tar.zst' ! -name '*debug*' -print -quit)"
+[[ -n "$YAY_PACKAGE" ]] || fail "yay package build failed."
+arch-chroot "$MOUNTPOINT" pacman -U --noconfirm "$YAY_DIR/$(basename "$YAY_PACKAGE")"
+rm -rf "$MOUNTPOINT$YAY_DIR"
 
 # Install both boot targets to this USB. --no-nvram prevents host firmware changes.
 arch-chroot "$MOUNTPOINT" grub-install --target=i386-pc "$TARGET"
