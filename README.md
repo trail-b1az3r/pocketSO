@@ -4,9 +4,10 @@ Pocketso is a portable, persistent Arch Linux installation designed to live enti
 
 ## Current implementation
 
-This repository builds a bootable Archiso installer. Boot it from one USB drive, then use **Pocketso USB Flasher** to install Pocketso onto a second USB drive.
+This repository builds a bootable Archiso installer. Boot it from one USB drive, then use the **Pocketso USB Installer** graphical app to install Pocketso onto a second USB drive.
 
 - x86_64 Arch Linux base, Pacman and yay
+- Python + PySide6 + Qt Quick/QML graphical installer
 - MATE, KDE Plasma, or both selectable in the installer
 - GPT with a BIOS boot partition and EFI System Partition
 - GRUB for Legacy BIOS and UEFI (UEFI install uses `--no-nvram`)
@@ -28,19 +29,19 @@ sudo mkarchiso -v -w /tmp/pocketso-work -o out profile
 
 The ISO will be written to `out/`.
 
-Every push, pull request and manual workflow dispatch runs the ISO build. Successful builds are uploaded as the `pocketso-installer-iso` artifact. A tag beginning with `v` also creates a GitHub Release containing the ISO and checksum.
+Every push, pull request and manual workflow dispatch runs the ISO build. CI also compiles the Python app/backend and checks the installer package names against current Arch repositories. Successful builds are uploaded as the `pocketso-installer-iso` artifact. A tag beginning with `v` also creates a GitHub Release containing the ISO and checksum.
 
 ## Install Pocketso
 
 1. Write the Pocketso installer ISO to a USB drive.
 2. Boot a computer from that installer USB.
 3. Connect to the internet (required to download the Arch packages).
-4. Open **Pocketso USB Flasher** from the MATE desktop, or run `sudo pocketso-flasher` in a terminal.
+4. Open **Pocketso USB Installer** from the MATE desktop. The legacy terminal flasher remains available as `sudo pocketso-flasher`.
 5. Select a separate destination USB drive of at least 30 GB.
-6. Select MATE, KDE, or both; create a user; confirm the exact destination device.
-7. Wait for installation and verification to finish, then shut down and boot from the destination USB.
+6. Select MATE, KDE, or both; create a user; type the exact destination device path to confirm.
+7. Watch the installation log and wait for completion, then shut down and boot from the destination USB.
 
-**The destination drive is erased completely.** Back up its contents first. The installer refuses to target the device containing the running installer and only offers removable/USB-transport disks. It never writes a bootloader to the host's internal disk.
+**The destination drive is erased completely.** Back up its contents first. The installer refuses to target the device containing the running installer and only offers removable/USB-transport disks. The privileged backend repeats these checks immediately before erasing and installs both bootloader targets to the selected USB only.
 
 ## Important limitations
 
@@ -56,8 +57,11 @@ Every push, pull request and manual workflow dispatch runs the ISO build. Succes
 
 ```bash
 bash -n profile/airootfs/usr/local/bin/pocketso-flasher
+bash -n profile/airootfs/usr/local/bin/pocketso-installer
 bash -n profile/airootfs/root/customize_airootfs.sh
-python -m py_compile profile/airootfs/usr/share/pocketso/disk-guard
+python -m py_compile profile/airootfs/usr/share/pocketso/installer/app.py
+python -m py_compile profile/airootfs/usr/share/pocketso/installer/backend.py
+python scripts/check-installer-packages.py
 ```
 
 See [docs/INSTALLER.md](docs/INSTALLER.md) for implementation and safety details.
