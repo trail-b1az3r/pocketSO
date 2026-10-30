@@ -38,7 +38,9 @@ jobs:
               bash -n build.sh
               ./build.sh --help
               python -m py_compile profile/airootfs/usr/share/pocketso/paket profile/airootfs/usr/share/pocketso/installer/app.py profile/airootfs/usr/share/pocketso/installer/backend.py scripts/check-installer-packages.py
+              python profile/airootfs/usr/share/pocketso/paket --help >/dev/null
               python -c "import json; json.load(open('profile/airootfs/usr/share/pocketso/fastfetch/config.jsonc', encoding='utf-8'))"
+              grep -qx 'arch' profile/airootfs/etc/pocketso/package-manager
               python scripts/check-installer-packages.py
               python scripts/check-installer-qml.py
               python -c "from PySide6.QtCore import QObject; from PySide6.QtQml import QQmlApplicationEngine"
