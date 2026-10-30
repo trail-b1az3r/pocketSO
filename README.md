@@ -59,7 +59,7 @@ Download `PocketsoFlasher-linux-x86_64.tar.gz` from the latest GitHub Release, o
 Install the required runtime dependencies on Arch Linux:
 
 ```bash
-sudo pacman -S --needed qt6-base qt6-declarative qt6-wayland polkit util-linux
+sudo pacman -S --needed qt6-base qt6-declarative qt6-quickcontrols2 qt6-wayland polkit util-linux
 tar -xzf PocketsoFlasher-linux-x86_64.tar.gz
 sudo install -Dm755 usr/bin/PocketsoFlasher /usr/local/bin/PocketsoFlasher
 sudo install -Dm755 usr/libexec/pocketso-flash-root /usr/local/libexec/pocketso-flash-root
