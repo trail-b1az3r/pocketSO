@@ -25,7 +25,8 @@ class InstallerStub(QObject):
 
 app = QGuiApplication([])
 engine = QQmlApplicationEngine()
-engine.rootContext().setContextProperty("installer", InstallerStub())
+stub = InstallerStub()
+engine.rootContext().setContextProperty("installer", stub)
 qml = Path("profile/airootfs/usr/share/pocketso/installer/Main.qml").resolve()
 engine.load(QUrl.fromLocalFile(str(qml)))
 if not engine.rootObjects():
