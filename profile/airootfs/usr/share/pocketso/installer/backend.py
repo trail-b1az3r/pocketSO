@@ -16,6 +16,7 @@ from pathlib import Path
 MIN_BYTES = 30_000_000_000
 MOUNT = Path("/mnt/pocketso-target")
 PROFILE = Path("/usr/share/pocketso")
+PACKAGE_MANAGER_FILE = Path("/etc/pocketso/package-manager")
 
 
 def emit(message: str) -> None:
@@ -187,6 +188,7 @@ def install(config: dict) -> None:
 
         base = [
             "base", "linux", "linux-lts", "linux-firmware", "archlinux-keyring", "grub",
+            "python", "fastfetch",
             "efibootmgr", "dosfstools", "e2fsprogs", "networkmanager", "iwd",
             "wpa_supplicant", "sudo", "git", "base-devel", "go", "dialog", "nano",
             "vim", "man-db", "man-pages", "texinfo", "mesa", "vulkan-icd-loader",
