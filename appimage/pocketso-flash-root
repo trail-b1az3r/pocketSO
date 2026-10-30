@@ -46,7 +46,7 @@ def main():
         print("ERROR: target is read-only.")
         return 2
     protected = set()
-    for mount in ("/", "/boot", "/run/archiso/bootmnt"):
+    for mount in ("/", "/boot", "/boot/efi", "/efi", "/home", "/var", "/usr", "/opt", "/srv", "/run/archiso/bootmnt"):
         try:
             protected |= disk_for(output(["findmnt", "-nro", "SOURCE", mount]))
         except (OSError, subprocess.CalledProcessError):
