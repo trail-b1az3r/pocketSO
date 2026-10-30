@@ -25,7 +25,7 @@ jobs:
       - name: Install build dependencies
         run: |
           pacman -Syu --noconfirm
-          pacman -S --noconfirm --needed archiso shellcheck git
+          pacman -S --noconfirm --needed archiso shellcheck git grub
           pacman-key --init
           pacman-key --populate archlinux
 
