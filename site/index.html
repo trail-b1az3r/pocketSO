@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#101310">
+  <meta name="description" content="Pocketso is a portable, persistent Arch Linux system built to run from a USB drive. Take your desktop with you.">
+  <title>Pocketso Linux — Your system. Your pocket.</title>
+  <link rel="icon" href="assets/pocketso-mark.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="script.js"></script>
+</head>
+<body>
+  <div class="announcement"><span class="pulse"></span> POCKETSO IS IN ACTIVE DEVELOPMENT <a href="https://github.com/trail-b1az3r/pocketSO">Follow the project <span aria-hidden="true">↗</span></a></div>
+  <header class="site-header">
+    <a class="brand" href="#top" aria-label="Pocketso home">
+      <img src="assets/pocketso-mark.svg" alt="" width="34" height="34">
+      <span>pocketso<span class="brand-period">.</span></span>
+    </a>
+    <button class="mobile-menu" aria-label="Toggle navigation" aria-expanded="false"><span></span><span></span></button>
+    <nav class="main-nav" aria-label="Main navigation">
+      <a href="#why">Why Pocketso</a>
+      <a href="#features">Features</a>
+      <a href="#install">Installation</a>
+      <a href="#docs">Documentation</a>
+    </nav>
+    <div class="header-actions">
+      <button class="theme-toggle" type="button" aria-label="Switch color theme" title="Switch color theme"><span class="theme-glyph">◐</span></button>
+      <a class="button button-small button-outline" href="https://github.com/trail-b1az3r/pocketSO">GitHub <span aria-hidden="true">↗</span></a>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero section-shell">
+      <div class="hero-copy">
+        <div class="eyebrow"><span class="eyebrow-line"></span> PORTABLE LINUX. NO COMPROMISE.</div>
+        <h1>Your system.<br><span class="headline-accent">Your pocket.</span></h1>
+        <p class="hero-lede">A persistent Arch Linux desktop that travels with you. Plug in your drive, boot your machine, and pick up where you left off.</p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="https://github.com/trail-b1az3r/pocketSO/releases/latest">Get Pocketso <span aria-hidden="true">↗</span></a>
+          <a class="button button-quiet" href="#how-it-works">See how it works <span aria-hidden="true">↓</span></a>
+        </div>
+        <div class="hero-meta"><span class="meta-dot"></span> Arch Linux base <span class="meta-divider">/</span> x86_64 <span class="meta-divider">/</span> USB-first</div>
+      </div>
+      <div class="hero-art" aria-label="Illustration of a Pocketso USB drive connected to a computer">
+        <div class="art-orbit orbit-one"></div><div class="art-orbit orbit-two"></div>
+        <div class="art-glow"></div>
+        <div class="terminal-card">
+          <div class="terminal-top"><div class="window-dots"><i></i><i></i><i></i></div><span>pocketso — zsh</span><span class="terminal-lock">●</span></div>
+          <div class="terminal-body">
+            <div><span class="term-muted">guest@pocketso</span><span class="term-green"> ~ </span><span class="term-prompt">❯</span> fastfetch</div>
+            <pre class="ascii">   ____            __
+  / __ \____  _____/ /_____  _____
+ / /_/ / __ \/ ___/ //_/ _ \/ ___/
+/ ____/ /_/ / /__/ ,&lt; /  __/ /
+/_/    \____/\___/_/|_|\___/_/</pre>
+            <div class="term-stats"><span>OS</span> Pocketso Linux x86_64</div>
+            <div class="term-stats"><span>BASE</span> Arch Linux</div>
+            <div class="term-stats"><span>SESSION</span> Persistent</div>
+            <div class="term-stats"><span>ROOT</span> <b>USB / ext4</b></div>
+            <div class="terminal-input"><span class="term-green">❯</span><span class="cursor"></span></div>
+          </div>
+        </div>
+        <div class="usb-device"><div class="usb-cap"></div><div class="usb-body"><span class="usb-mark">p.</span><span class="usb-led"></span></div></div>
+        <div class="art-caption"><span class="caption-square"></span> ONE DRIVE. YOUR WHOLE WORKSPACE.</div>
+      </div>
+      <div class="hero-bottomline"><span>01 / A DIFFERENT WAY TO BOOT</span><span>SCROLL TO EXPLORE <span aria-hidden="true">↓</span></span></div>
+    </section>
+
+    <section class="ticker" aria-label="Pocketso highlights"><div class="ticker-track"><span>PORTABLE BY DESIGN</span><b>✳</b><span>ARCH LINUX</span><b>✳</b><span>YOUR FILES, YOUR SETUP</span><b>✳</b><span>BOOT ANYWHERE</span><b>✳</b><span>PORTABLE BY DESIGN</span><b>✳</b><span>ARCH LINUX</span><b>✳</b><span>YOUR FILES, YOUR SETUP</span><b>✳</b><span>BOOT ANYWHERE</span><b>✳</b></div></section>
+
+    <section class="intro section-shell" id="why">
+      <div class="section-kicker">01 — THE IDEA</div>
+      <div class="intro-grid">
+        <h2>Not another live USB.<br><span>A real system that moves.</span></h2>
+        <div class="intro-copy"><p>Live environments disappear when you reboot. Pocketso is designed to stay with you: a full, persistent Linux installation on a separate USB drive, using the computer's hardware without taking over its internal storage.</p><p>Your packages, files, settings, and desktop travel together. Connect the drive to a supported PC and boot into your own workspace.</p><a class="text-link" href="#how-it-works">The idea, in three steps <span>↗</span></a></div>
+      </div>
+    </section>
+
+    <section class="feature-section section-shell" id="features">
+      <div class="section-heading"><div><div class="section-kicker">02 — BUILT FOR THE WAY YOU WORK</div><h2>Familiar Linux.<br><span>Different freedom.</span></h2></div><p>Keep the flexibility of Arch. Leave the machine behind.</p></div>
+      <div class="feature-grid">
+        <article class="feature-card feature-large"><div class="feature-number">01 / PORTABILITY</div><div class="feature-visual visual-drive"><div class="drive-ring"></div><div class="drive-icon"><span>p.</span></div><div class="visual-label">YOUR SYSTEM<br>IN YOUR POCKET</div></div><h3>Take your setup with you.</h3><p>A persistent installation lives on its own USB drive. Your environment comes along instead of being rebuilt on every computer.</p></article>
+        <article class="feature-card"><div class="feature-number">02 / ARCH LINUX</div><div class="feature-visual visual-terminal"><span class="code-line"><i>$</i> sudo pacman -Syu</span><span class="code-line code-dim">:: Synchronizing package databases...</span><span class="code-line code-ok"> there is no place like ~</span><span class="code-cursor"></span></div><h3>Rolling-release roots.</h3><p>Built on Arch Linux with Pacman and yay. Keep your system current with the tools and ecosystem you know.</p></article>
+        <article class="feature-card"><div class="feature-number">03 / YOUR DESKTOP</div><div class="feature-visual visual-desktops"><div class="desktop-tile mate-tile"><span>M</span><small>MATE</small></div><div class="desktop-tile kde-tile"><span>K</span><small>KDE PLASMA</small></div></div><h3>Choose your workspace.</h3><p>Select MATE, KDE Plasma, or both during installation. Start with the desktop that fits your flow.</p></article>
+        <article class="feature-card"><div class="feature-number">04 / HARDWARE RESPECT</div><div class="feature-visual visual-shield"><div class="shield-shape"><span>↯</span></div><div class="shield-label">INTERNAL DISKS<br>READ-ONLY GUARD</div></div><h3>Designed to leave disks alone.</h3><p>Pocketso targets a separate USB drive. Disk Guard adds a read-only safeguard for internal physical disks; it is defense-in-depth, not a hardware write blocker.</p></article>
+      </div>
+    </section>
+
+    <section class="how-section section-shell" id="how-it-works">
+      <div class="section-kicker">03 — UP AND RUNNING</div>
+      <div class="how-heading"><h2>Three steps.<br><span>One portable PC.</span></h2><p>You'll use one USB to start the installer and a second USB as your Pocketso system drive.</p></div>
+      <div class="steps">
+        <article class="step"><div class="step-top"><span>01</span><span class="step-icon">↓</span></div><h3>Get the image</h3><p>Download the Pocketso installer ISO and write it to a USB drive with the Pocketso Flasher or your preferred imaging tool.</p><div class="step-foot">INSTALLER USB</div></article>
+        <article class="step"><div class="step-top"><span>02</span><span class="step-icon">⌁</span></div><h3>Install to USB</h3><p>Boot the installer, connect to the internet, and use the graphical installer to set up a separate USB drive of at least 30 GB.</p><div class="step-foot">DESTINATION USB · 30 GB MIN.</div></article>
+        <article class="step"><div class="step-top"><span>03</span><span class="step-icon">↗</span></div><h3>Take it anywhere</h3><p>Shut down, move your Pocketso drive to another supported computer, and select it in that computer's boot menu.</p><div class="step-foot">YOUR DESKTOP, ON THE MOVE</div></article>
+      </div>
+      <div class="how-note"><span class="note-mark">i</span><p><strong>Good to know:</strong> Installation currently requires an internet connection. A 64 GB USB 3.x drive is recommended. The destination USB is erased during installation.</p></div>
+    </section>
+
+    <section class="download-section" id="install">
+      <div class="download-inner section-shell">
+        <div class="section-kicker">04 — TAKE THE FIRST STEP</div>
+        <div class="download-grid"><div><h2>Make room<br>for <span>your own OS.</span></h2><p>Get the installer, flash your USB, and make a workspace that's yours wherever you boot.</p><div class="download-actions"><a class="button button-light" href="https://github.com/trail-b1az3r/pocketSO/releases/latest">View latest release <span>↗</span></a><a class="download-source" href="https://github.com/trail-b1az3r/pocketSO">Browse source code <span>↗</span></a></div></div>
+          <div class="download-panel"><div class="panel-head"><span>DOWNLOADS</span><span class="panel-status"><i></i> RELEASES ON GITHUB</span></div><a class="download-row" href="https://github.com/trail-b1az3r/pocketSO/releases/latest"><span class="file-icon">ISO</span><span><strong>Pocketso Installer</strong><small>Bootable x86_64 image · Release asset</small></span><span class="row-arrow">↗</span></a><a class="download-row" href="https://github.com/trail-b1az3r/pocketSO/releases/latest"><span class="file-icon file-app">APP</span><span><strong>Pocketso Flasher</strong><small>Linux AppImage · Release asset</small></span><span class="row-arrow">↗</span></a><div class="panel-foot">No release published yet? Follow development and builds on GitHub.</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="docs-section section-shell" id="docs">
+      <div class="section-heading"><div><div class="section-kicker">05 — READ THE FINE PRINT</div><h2>Know before<br><span>you boot.</span></h2></div><p>Clear instructions, honest limitations, and the source behind the system.</p></div>
+      <div class="docs-grid">
+        <a class="doc-link" href="https://github.com/trail-b1az3r/pocketSO/blob/main/README.md"><span class="doc-symbol">⌘</span><span><strong>Getting started</strong><small>Installation steps and system requirements</small></span><b>↗</b></a>
+        <a class="doc-link" href="https://github.com/trail-b1az3r/pocketSO/blob/main/docs/INSTALLER.md"><span class="doc-symbol">▤</span><span><strong>Installer guide</strong><small>Disk layout, boot modes, and safety details</small></span><b>↗</b></a>
+        <a class="doc-link" href="https://github.com/trail-b1az3r/pocketSO/actions"><span class="doc-symbol">⌁</span><span><strong>Build status</strong><small>ISO and AppImage workflow runs</small></span><b>↗</b></a>
+        <a class="doc-link" href="https://github.com/trail-b1az3r/pocketSO/issues"><span class="doc-symbol">＋</span><span><strong>Issues & feedback</strong><small>Report bugs and help improve Pocketso</small></span><b>↗</b></a>
+      </div>
+    </section>
+
+    <section class="closing section-shell"><div class="closing-mark"><img src="assets/pocketso-mark.svg" alt="" width="48" height="48"></div><p>YOUR COMPUTER IS WHERE YOU ARE.</p><h2>Your Linux can be, too.</h2><a class="button button-primary" href="https://github.com/trail-b1az3r/pocketSO">Explore Pocketso on GitHub <span>↗</span></a></section>
+  </main>
+
+  <footer class="site-footer"><a class="brand footer-brand" href="#top"><img src="assets/pocketso-mark.svg" alt="" width="28" height="28"><span>pocketso<span class="brand-period">.</span></span></a><span>Portable Linux, built in the open.</span><div><a href="https://github.com/trail-b1az3r/pocketSO">GitHub</a><a href="https://github.com/trail-b1az3r/pocketSO/releases">Releases</a><a href="#top">Back to top ↑</a></div><small>© <span id="year"></span> Pocketso contributors. Not affiliated with Arch Linux.</small></footer>
+</body>
+</html>
