@@ -14,6 +14,8 @@ qt_add_executable(PocketsoFlasher
     src/FlasherBackend.h
 )
 
+set_source_files_properties(qml/Main.qml PROPERTIES QT_RESOURCE_ALIAS Main.qml)
+
 qt_add_qml_module(PocketsoFlasher
     URI Pocketso.Flasher
     VERSION 1.0
@@ -34,4 +36,3 @@ install(TARGETS PocketsoFlasher RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 install(TARGETS pocketso-flash-root RUNTIME DESTINATION ${CMAKE_INSTALL_LIBEXECDIR})
 install(FILES packaging/pocketso-flasher.desktop DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
 install(FILES packaging/pocketso-flasher.svg DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/hicolor/scalable/apps)
-install(FILES packaging/org.pocketso.flasher.policy DESTINATION ${CMAKE_INSTALL_DATADIR}/polkit-1/actions)
