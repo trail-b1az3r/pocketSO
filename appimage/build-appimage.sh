@@ -10,6 +10,8 @@ mkdir -p AppDir/usr/bin AppDir/usr/libexec AppDir/usr/share/applications AppDir/
 cp -a dist/PocketsoFlasher AppDir/usr/bin/
 cp dist/pocketso-flash-root AppDir/usr/libexec/pocketso-flash-root
 chmod 0755 AppDir/usr/libexec/pocketso-flash-root
+cp appimage/pocketso-flasher.desktop AppDir/pocketso-flasher.desktop
+cp appimage/pocketso-flasher.svg AppDir/pocketso-flasher.svg
 cp appimage/pocketso-flasher.desktop AppDir/usr/share/applications/pocketso-flasher.desktop
 cp appimage/pocketso-flasher.svg AppDir/usr/share/icons/hicolor/scalable/apps/pocketso-flasher.svg
 cp appimage/AppRun AppDir/AppRun
