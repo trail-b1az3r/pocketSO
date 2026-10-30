@@ -12,6 +12,7 @@
 #include <QStandardPaths>
 #include <QUrl>
 #include <QSaveFile>
+#include <QSet>
 
 namespace {
 QString runCommand(const QString &program, const QStringList &args)
@@ -114,7 +115,7 @@ void FlasherBackend::clearLog()
 void FlasherBackend::setIsoPath(const QString &path)
 {
     const QString local = QUrl(path).isLocalFile() ? QUrl(path).toLocalFile() : path;
-    if (!QFileInfo::isFile(local) || !local.endsWith(".iso", Qt::CaseInsensitive)) {
+    if (!QFileInfo(local).isFile() || !local.endsWith(".iso", Qt::CaseInsensitive)) {
         appendLog("Choose a valid local ISO file.");
         return;
     }
@@ -235,26 +236,38 @@ void FlasherBackend::downloadLatest()
         appendLog("Downloading " + assetName + "…");
         QNetworkRequest fileRequest{QUrl(assetUrl)};
         fileRequest.setHeader(QNetworkRequest::UserAgentHeader, "Pocketso-Flasher");
+        m_downloadDestination = destination;
+        m_downloadOutput.setFileName(destination);
+        if (!m_downloadOutput.open(QIODevice::WriteOnly)) {
+            setBusy(false);
+            const QString message = "Could not create the ISO download file: " + destination;
+            appendLog(message);
+            emit downloadFinished(false, message);
+            return;
+        }
         QNetworkReply *fileReply = m_network.get(fileRequest);
+        connect(fileReply, &QNetworkReply::readyRead, this, [this, fileReply] {
+            const QByteArray chunk = fileReply->readAll();
+            if (m_downloadOutput.write(chunk) != chunk.size()) {
+                appendLog("Could not write the ISO download to disk.");
+                fileReply->abort();
+            }
+        });
         connect(fileReply, &QNetworkReply::downloadProgress, this, [this](qint64 received, qint64 total) {
             if (total > 0) setProgress(static_cast<int>(received * 100 / total));
         });
         connect(fileReply, &QNetworkReply::finished, this, [this, fileReply, destination] {
-            const QByteArray data = fileReply->readAll();
+            const QByteArray remaining = fileReply->readAll();
+            if (!remaining.isEmpty() && m_downloadOutput.write(remaining) != remaining.size())
+                fileReply->abort();
             const auto error = fileReply->error();
             const QString errorText = fileReply->errorString();
             fileReply->deleteLater();
-            if (error != QNetworkReply::NoError) {
+            if (error != QNetworkReply::NoError || !m_downloadOutput.commit()) {
+                m_downloadOutput.cancelWriting();
                 setBusy(false);
-                appendLog("Download failed: " + errorText);
-                emit downloadFinished(false, errorText);
-                return;
-            }
-            QSaveFile output(destination);
-            if (!output.open(QIODevice::WriteOnly) || output.write(data) != data.size() || !output.commit()) {
-                const QString message = "Could not save the ISO to " + destination;
-                setBusy(false);
-                appendLog(message);
+                const QString message = error != QNetworkReply::NoError ? errorText : "Could not finalize the ISO file.";
+                appendLog("Download failed: " + message);
                 emit downloadFinished(false, message);
                 return;
             }
@@ -271,7 +284,7 @@ void FlasherBackend::downloadLatest()
 void FlasherBackend::flash(const QString &target, const QString &confirmation)
 {
     if (m_busy || !m_downloadReply.isNull() || m_flashProcess.state() != QProcess::NotRunning) return;
-    if (m_isoPath.isEmpty() || !QFileInfo::isFile(m_isoPath)) {
+    if (m_isoPath.isEmpty() || !QFileInfo(m_isoPath).isFile()) {
         emit flashFinished(false, "Choose or download a Pocketso ISO first.");
         return;
     }
