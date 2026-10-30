@@ -1,0 +1,164 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+APP_NAME="Pocketso USB Flasher"
+MIN_BYTES=30000000000
+MOUNTPOINT="/mnt"
+WORKDIR="/tmp/pocketso-install"
+PROFILE_DATA="/usr/share/pocketso"
+
+cleanup() {
+  set +e
+  if mountpoint -q "$MOUNTPOINT"; then
+    sync
+    umount -R "$MOUNTPOINT"
+  fi
+  rm -rf "$WORKDIR"
+}
+trap cleanup EXIT
+
+fail() {
+  dialog --title "$APP_NAME - Error" --msgbox "$1" 10 72
+  exit 1
+}
+
+[[ $EUID -eq 0 ]] || exec sudo "$0" "$@"
+for tool in dialog lsblk findmnt wipefs parted mkfs.fat mkfs.ext4 pacstrap arch-chroot grub-install grub-mkconfig blockdev; do
+  command -v "$tool" >/dev/null 2>&1 || fail "Required tool is missing: $tool"
+done
+
+dialog --title "$APP_NAME" --msgbox "Pocketso installs a complete, persistent Arch Linux system onto a USB drive.\n\nThe selected destination will be erased. Use a separate USB from the one running this installer. Internet access is required.\n\nInternal disks are not installation targets." 13 72
+
+# Identify the device that contains the running installer and never offer it.
+BOOT_SOURCE="$(findmnt -nro SOURCE /run/archiso/bootmnt 2>/dev/null || true)"
+ROOT_SOURCE="$(findmnt -nro SOURCE / 2>/dev/null || true)"
+device_parent() {
+  local source="$1"
+  [[ -n "$source" ]] || return 0
+  source="${source%%\[*}"
+  [[ -b "$source" ]] || source="$(findfs "$source" 2>/dev/null || true)"
+  [[ -b "$source" ]] || return 0
+  local parent
+  parent="$(lsblk -ndo PKNAME "$source" 2>/dev/null | head -n1)"
+  if [[ -n "$parent" ]]; then printf '/dev/%s' "$parent"; else printf '%s' "$source"; fi
+}
+BOOT_DISK="$(device_parent "$BOOT_SOURCE")"
+ROOT_DISK="$(device_parent "$ROOT_SOURCE")"
+
+mapfile -t DISKS < <(lsblk -dpbno NAME,SIZE,MODEL,TRAN,RM,TYPE | awk '$6=="disk" && ($4=="usb" || $5=="1") {print $1}')
+MENU=()
+for disk in "${DISKS[@]}"; do
+  [[ -b "$disk" ]] || continue
+  [[ "$disk" != "$BOOT_DISK" && "$disk" != "$ROOT_DISK" ]] || continue
+  bytes="$(lsblk -bdno SIZE "$disk" | head -n1)"
+  (( bytes >= MIN_BYTES )) || continue
+  size="$(numfmt --to=iec --suffix=B "$bytes")"
+  model="$(lsblk -dnro MODEL "$disk" | xargs)"
+  tran="$(lsblk -dnro TRAN "$disk" | xargs)"
+  serial="$(lsblk -dnro SERIAL "$disk" | xargs)"
+  label="$disk | $size | ${model:-USB drive} | ${tran:-removable} | ${serial:-no serial}"
+  MENU+=("$disk" "$label")
+done
+
+(("${#MENU[@]}" > 0)) || fail "No eligible USB destination was found. Connect a separate USB drive with at least 30 GB capacity. The installer USB is deliberately excluded."
+TARGET="$(dialog --stdout --title "Select destination USB" --menu "Choose the USB drive to ERASE and install Pocketso onto:" 20 100 10 "${MENU[@]}")" || exit 1
+[[ -b "$TARGET" ]] || fail "Selected device disappeared."
+[[ "$TARGET" != "$BOOT_DISK" && "$TARGET" != "$ROOT_DISK" ]] || fail "Safety check: this is the running installer/system device."
+
+DETAILS="$(lsblk -dno NAME,SIZE,MODEL,SERIAL,TRAN "$TARGET")"
+dialog --title "Destructive operation" --yesno "Pocketso will erase ALL partitions and data on:\n\n$DETAILS\n\nType the exact device path on the next screen to confirm." 14 76 || exit 1
+CONFIRM="$(dialog --stdout --title "Confirm destination" --inputbox "Type exactly: $TARGET" 9 72)" || exit 1
+[[ "$CONFIRM" == "$TARGET" ]] || fail "Confirmation did not match. Nothing was changed."
+
+DESKTOP="$(dialog --stdout --title "Desktop selection" --menu "Choose the desktop environment to install:" 13 70 3 mate "MATE (recommended, lighter)" kde "KDE Plasma" both "Both MATE and KDE Plasma")" || exit 1
+USERNAME="$(dialog --stdout --title "Create user" --inputbox "Choose your Pocketso username:" 8 65 "pocketso")" || exit 1
+[[ "$USERNAME" =~ ^[a-z_][a-z0-9_-]{0,31}$ ]] || fail "Invalid username. Use lowercase letters, numbers, underscore or hyphen."
+PASSWORD="$(dialog --stdout --title "User password" --passwordbox "Choose a password for $USERNAME:" 9 65)" || exit 1
+[[ ${#PASSWORD} -ge 8 ]] || fail "Use a password with at least 8 characters."
+PASSWORD2="$(dialog --stdout --title "Confirm password" --passwordbox "Enter the password again:" 9 65)" || exit 1
+[[ "$PASSWORD" == "$PASSWORD2" ]] || fail "Passwords do not match."
+unset PASSWORD2
+
+if ! getent hosts geo.mirror.pkgbuild.com >/dev/null 2>&1; then
+  fail "No network connection detected. Connect using NetworkManager and run the flasher again."
+fi
+
+dialog --title "Final confirmation" --yesno "Ready to erase $TARGET and install Pocketso ($DESKTOP).\n\nThe destination must remain connected until completion. Continue?" 12 72 || exit 1
+
+mkdir -p "$WORKDIR" "$MOUNTPOINT"
+# Re-check the device immediately before any destructive operation.
+[[ -b "$TARGET" && "$TARGET" != "$BOOT_DISK" && "$TARGET" != "$ROOT_DISK" ]] || fail "Destination changed or failed the safety check."
+while read -r part; do
+  [[ -n "$part" ]] || continue
+  umount "$part" 2>/dev/null || true
+done < <(lsblk -lnpo NAME "$TARGET" | tail -n +2)
+
+wipefs --all --force "$TARGET"
+parted --script "$TARGET" mklabel gpt
+parted --script "$TARGET" mkpart BIOS 1MiB 3MiB
+parted --script "$TARGET" set 1 bios_grub on
+parted --script "$TARGET" mkpart ESP fat32 3MiB 1027MiB
+parted --script "$TARGET" set 2 esp on
+parted --script "$TARGET" mkpart ROOT ext4 1027MiB 100%
+partprobe "$TARGET"
+udevadm settle
+mapfile -t PARTS < <(lsblk -lnpo NAME "$TARGET" | tail -n +2)
+(("${#PARTS[@]}" == 3)) || fail "Could not detect the three newly created partitions."
+BIOS_PART="${PARTS[0]}"
+EFI_PART="${PARTS[1]}"
+ROOT_PART="${PARTS[2]}"
+
+mkfs.fat -F 32 -n POCKETSO_EFI "$EFI_PART"
+mkfs.ext4 -F -L POCKETSO_ROOT "$ROOT_PART"
+mount "$ROOT_PART" "$MOUNTPOINT"
+mkdir -p "$MOUNTPOINT/boot"
+mount "$EFI_PART" "$MOUNTPOINT/boot"
+
+dialog --title "Installing Arch Linux" --infobox "Downloading and installing the base system. This can take several minutes." 7 72
+BASE_PKGS=(base linux linux-lts linux-firmware archlinux-keyring grub efibootmgr dosfstools e2fsprogs networkmanager iwd wpa_supplicant sudo git base-devel dialog nano vim man-db man-pages texinfo mesa vulkan-icd-loader pipewire pipewire-alsa pipewire-pulse wireplumber bluez bluez-utils udisks2 gvfs gvfs-mtp gvfs-smb polkit firefox)
+case "$DESKTOP" in
+  mate) DESKTOP_PKGS=(xorg-server mate mate-extra lightdm lightdm-gtk-greeter mate-terminal) ;;
+  kde) DESKTOP_PKGS=(plasma-meta konsole dolphin sddm xorg-server) ;;
+  both) DESKTOP_PKGS=(xorg-server mate mate-extra lightdm lightdm-gtk-greeter mate-terminal plasma-meta konsole dolphin sddm) ;;
+esac
+
+pacstrap -K "$MOUNTPOINT" "${BASE_PKGS[@]}" "${DESKTOP_PKGS[@]}"
+genfstab -U "$MOUNTPOINT" >> "$MOUNTPOINT/etc/fstab"
+
+arch-chroot "$MOUNTPOINT" pacman-key --init
+arch-chroot "$MOUNTPOINT" pacman-key --populate archlinux
+arch-chroot "$MOUNTPOINT" ln -sf /usr/share/zoneinfo/UTC /etc/localtime
+arch-chroot "$MOUNTPOINT" bash -c "sed -i 's/^#en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && locale-gen"
+printf 'LANG=en_US.UTF-8\n' > "$MOUNTPOINT/etc/locale.conf"
+printf 'pocketso\n' > "$MOUNTPOINT/etc/hostname"
+
+arch-chroot "$MOUNTPOINT" useradd -m -G wheel,audio,video,storage,optical -s /bin/bash "$USERNAME"
+printf '%s:%s\n' "$USERNAME" "$PASSWORD" | arch-chroot "$MOUNTPOINT" chpasswd
+unset PASSWORD
+install -d -m 0750 "$MOUNTPOINT/etc/sudoers.d"
+printf '%%wheel ALL=(ALL:ALL) ALL\n' > "$MOUNTPOINT/etc/sudoers.d/10-wheel"
+chmod 0440 "$MOUNTPOINT/etc/sudoers.d/10-wheel"
+arch-chroot "$MOUNTPOINT" visudo -cf /etc/sudoers.d/10-wheel
+
+install -D -m 0755 "$PROFILE_DATA/disk-guard" "$MOUNTPOINT/usr/local/libexec/pocketso-disk-guard"
+install -D -m 0644 "$PROFILE_DATA/pocketso-disk-guard.service" "$MOUNTPOINT/etc/systemd/system/pocketso-disk-guard.service"
+install -D -m 0644 "$PROFILE_DATA/pocketso-disk-guard@.service" "$MOUNTPOINT/etc/systemd/system/pocketso-disk-guard@.service"
+install -D -m 0644 "$PROFILE_DATA/80-pocketso-disk-guard.rules" "$MOUNTPOINT/etc/udev/rules.d/80-pocketso-disk-guard.rules"
+
+if [[ "$DESKTOP" == kde ]]; then
+  arch-chroot "$MOUNTPOINT" systemctl enable NetworkManager bluetooth sddm pocketso-disk-guard
+else
+  arch-chroot "$MOUNTPOINT" systemctl enable NetworkManager bluetooth lightdm pocketso-disk-guard
+fi
+
+# Build yay as the unprivileged user; AUR build scripts are never run as root.
+arch-chroot "$MOUNTPOINT" runuser -u "$USERNAME" -- env HOME="/home/$USERNAME" bash -lc 'cd /tmp && git clone https://aur.archlinux.org/yay.git pocketso-yay && cd pocketso-yay && makepkg -si --noconfirm && cd / && rm -rf /tmp/pocketso-yay'
+
+# Install both boot targets to this USB. --no-nvram prevents host firmware changes.
+arch-chroot "$MOUNTPOINT" grub-install --target=i386-pc "$TARGET"
+arch-chroot "$MOUNTPOINT" grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=Pocketso --removable --no-nvram
+arch-chroot "$MOUNTPOINT" grub-mkconfig -o /boot/grub/grub.cfg
+
+sync
+umount -R "$MOUNTPOINT"
+dialog --title "Pocketso installation complete" --msgbox "Pocketso was installed to $TARGET.\n\nSafely shut down, remove the installer USB, and boot from the Pocketso USB. The first boot may take longer while hardware is initialized." 12 76

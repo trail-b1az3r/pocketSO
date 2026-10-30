@@ -1,0 +1,14 @@
+[Unit]
+Description=Protect non-system disks from writes (Pocketso)
+DefaultDependencies=no
+After=local-fs.target
+Before=udisks2.service display-manager.service graphical.target
+ConditionPathExists=/usr/local/libexec/pocketso-disk-guard
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/libexec/pocketso-disk-guard --all
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

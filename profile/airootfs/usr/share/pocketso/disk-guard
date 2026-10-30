@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+MODE="${1:---all}"
+DEVICE="${2:-}"
+ROOT_SOURCE="$(findmnt -nro SOURCE / 2>/dev/null || true)"
+[[ -n "$ROOT_SOURCE" ]] || exit 0
+ROOT_SOURCE="${ROOT_SOURCE%%\[*}"
+[[ -b "$ROOT_SOURCE" ]] || ROOT_SOURCE="$(findfs "$ROOT_SOURCE" 2>/dev/null || true)"
+[[ -b "$ROOT_SOURCE" ]] || exit 0
+ROOT_PARENT="$(lsblk -ndo PKNAME "$ROOT_SOURCE" 2>/dev/null | head -n1)"
+if [[ -n "$ROOT_PARENT" ]]; then ROOT_DISK="/dev/$ROOT_PARENT"; else ROOT_DISK="$ROOT_SOURCE"; fi
+
+protect_disk() {
+  local disk="$1"
+  [[ -b "$disk" && "$disk" != "$ROOT_DISK" ]] || return 0
+  blockdev --setro "$disk" || logger -t pocketso-disk-guard "Could not set read-only: $disk"
+  while read -r part; do
+    [[ -b "$part" ]] && blockdev --setro "$part" || true
+  done < <(lsblk -lnpo NAME "$disk" | tail -n +2)
+  logger -t pocketso-disk-guard "Protected non-system disk read-only: $disk"
+}
+
+if [[ "$MODE" == --device ]]; then
+  protect_disk "$DEVICE"
+else
+  while read -r disk; do protect_disk "$disk"; done < <(lsblk -dpno NAME,TYPE | awk '$2=="disk" {print $1}')
+fi
