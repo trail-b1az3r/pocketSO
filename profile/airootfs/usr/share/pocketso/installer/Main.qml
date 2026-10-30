@@ -216,7 +216,8 @@ ApplicationWindow {
                         text: window.installing ? "Installing Pocketso…" : "Erase drive and install Pocketso"
                         enabled: !window.installing && window.selectedDrive.length > 0
                                  && confirmField.text === window.selectedDrive
-                                 && passwordField.text.length >= 10\n                                 && passwordField.text === passwordConfirmField.text
+                                 && passwordField.text.length >= 10
+                                 && passwordField.text === passwordConfirmField.text
                         highlighted: true
                         onClicked: {
                             installer.startInstall(
@@ -224,9 +225,11 @@ ApplicationWindow {
                                 desktopBox.currentValue,
                                 usernameField.text,
                                 passwordField.text,
+                                passwordConfirmField.text,
                                 confirmField.text
                             )
-                            passwordField.text = ""\n                            passwordConfirmField.text = ""
+                            passwordField.text = ""
+                            passwordConfirmField.text = ""
                         }
                     }
                     ProgressBar {
