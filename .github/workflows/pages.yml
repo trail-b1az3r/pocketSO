@@ -1,0 +1,60 @@
+name: Deploy Pocketso website
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "site/**"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Validate website files
+        run: |
+          test -s site/index.html
+          test -s site/styles.css
+          test -s site/script.js
+          test -s site/assets/pocketso-mark.svg
+          python - <<'PY'
+          from html.parser import HTMLParser
+          from pathlib import Path
+
+          class CheckHTML(HTMLParser):
+              pass
+
+          html = Path("site/index.html").read_text()
+          CheckHTML().feed(html)
+          for asset in ("styles.css", "script.js", "assets/pocketso-mark.svg"):
+              assert (Path("site") / asset).is_file(), asset
+          print("Website structure validated.")
+          PY
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
