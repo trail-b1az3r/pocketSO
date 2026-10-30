@@ -6,7 +6,7 @@ Pocketso is a portable, persistent Arch Linux installation designed to live enti
 
 ## Current implementation
 
-This repository builds a bootable Archiso installer. Boot it from one USB drive, then use the **Pocketso USB Installer** graphical app to install Pocketso onto a second USB drive.
+This repository builds two distinct bootable Archiso images: the **Installer ISO**, which installs Pocketso onto a destination USB, and the **Pocketso Live ISO**, which boots directly to the MATE desktop without opening or running the installer. The live image is a separate live session, not the persistent USB installation created by the installer.
 
 - x86_64 Arch Linux base, Pacman and yay
 - Optional **paket** package-management frontend for the custom-manager ISO build
@@ -50,9 +50,9 @@ Archiso itself always uses Pacman internally to assemble an Arch ISO; the second
 
 The ISO is written to `out/` and a `SHA256SUMS` file is generated. Build output and work directories can be changed with `--out DIR` and `--work DIR`. See [docs/PAKET.md](docs/PAKET.md) for all Paket commands.
 
-Every push to `main`, pull request and manual workflow dispatch runs the CI ISO build. CI checks the installer package names against current Arch repositories and compiles the native C++/QML flasher. Successful builds are uploaded as the `pocketso-installer-iso` and `pocketso-flasher-linux-x86_64` artifacts. A tag beginning with `v` also creates a GitHub Release containing the ISO, native Linux flasher tarball and checksums.
+Every push to `main`, pull request and manual workflow dispatch builds both ISO variants. CI checks installer packages, builds the native C++/QML flasher, and uploads `pocketso-installer-and-live-isos` plus `pocketso-flasher-linux-x86_64` artifacts. A tag beginning with `v` publishes both ISO files, their SHA256 checksums, and the native Linux flasher tarball.
 
-## Flash the installer USB from Linux
+## Flash either ISO from Linux
 
 Download `PocketsoFlasher-linux-x86_64.tar.gz` from the latest GitHub Release, or from the `pocketso-flasher-linux-x86_64` artifact on the Actions page. This is a native Qt 6 / QML + C++ Linux build, not an AppImage.
 
@@ -73,7 +73,7 @@ Launch it as your normal desktop user:
 PocketsoFlasher
 ```
 
-The GUI does not need `sudo`. When you start flashing, PolicyKit (`pkexec`) requests administrator authentication for the separate C++ USB writer only. A desktop PolicyKit authentication agent must be running. The app can download the latest published Pocketso ISO or use a local ISO. Select a USB device, type its exact device path, confirm the erase warning, and authorize the write. It refuses to flash the running system disk and requires a whole USB/removable drive. **The selected USB is erased completely.** See [flasher/README.md](flasher/README.md) for build and installation details.
+The GUI does not need `sudo`. When you start flashing, PolicyKit (`pkexec`) requests administrator authentication for the separate C++ USB writer only. A desktop PolicyKit authentication agent must be running. The app's image selector downloads either the latest Installer ISO or the latest Pocketso Live ISO; it can also use any local ISO. Select a USB device, type its exact device path, confirm the erase warning, and authorize the write. It refuses to flash the running system disk and requires a whole USB/removable drive. **The selected USB is erased completely.** See [flasher/README.md](flasher/README.md) for build and installation details.
 
 ## Install Pocketso
 
@@ -87,7 +87,7 @@ The GUI does not need `sudo`. When you start flashing, PolicyKit (`pkexec`) requ
 
 **The destination drive is erased completely.** Back up its contents first. The installer refuses to target the device containing the running installer and only offers removable/USB-transport disks. The privileged backend repeats these checks immediately before erasing and installs both bootloader targets to the selected USB only.
 
-## Important limitations
+## Boot the Pocketso Live ISO\n\nChoose **Pocketso Live ISO** in Pocketso Flasher, write it to a USB drive, and boot from it. It starts the Pocketso MATE desktop directly and does not install to another drive. This is a non-persistent live session; use the Installer ISO when you want to create the persistent Pocketso USB installation.\n\n## Important limitations
 
 - This is an initial installer implementation, not a claim of universal hardware compatibility. WiFi and graphics support depend on upstream Linux drivers and firmware.
 - Internet access is required during installation. This is not yet an offline installer.
