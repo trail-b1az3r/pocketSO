@@ -18,8 +18,8 @@ This repository builds a bootable Archiso installer. Boot it from one USB drive,
 - Persistent ext4 root filesystem
 - Linux firmware, NetworkManager, iwd and common desktop hardware support
 - Disk Guard marks non-system internal disks read-only in both the live installer and installed system
-- A standalone Pocketso Flasher AppImage downloads the latest release ISO or flashes a local ISO to a USB drive
-- GitHub Actions builds the installer ISO and AppImage; tagged releases publish both
+- A native Qt 6 / QML + C++ Pocketso Flasher downloads the latest release ISO or flashes a local ISO to a USB drive
+- GitHub Actions builds the installer ISO and a native Linux flasher executable; tagged releases publish both
 
 ## Project website
 
@@ -50,18 +50,30 @@ Archiso itself always uses Pacman internally to assemble an Arch ISO; the second
 
 The ISO is written to `out/` and a `SHA256SUMS` file is generated. Build output and work directories can be changed with `--out DIR` and `--work DIR`. See [docs/PAKET.md](docs/PAKET.md) for all Paket commands.
 
-Every push to `main`, pull request and manual workflow dispatch runs the CI ISO build. CI also compiles the Python app/backend and checks the installer package names against current Arch repositories. Successful builds are uploaded as the `pocketso-installer-iso` artifact. A tag beginning with `v` also creates a GitHub Release containing the ISO, AppImage and checksums.
+Every push to `main`, pull request and manual workflow dispatch runs the CI ISO build. CI checks the installer package names against current Arch repositories and compiles the native C++/QML flasher. Successful builds are uploaded as the `pocketso-installer-iso` and `pocketso-flasher-linux-x86_64` artifacts. A tag beginning with `v` also creates a GitHub Release containing the ISO, native Linux flasher tarball and checksums.
 
 ## Flash the installer USB from Linux
 
-Download the `PocketsoFlasher-x86_64.AppImage` file from the latest GitHub Release, or from the `pocketso-flasher-appimage` artifact on the Actions page. Make it executable and launch it:
+Download `PocketsoFlasher-linux-x86_64.tar.gz` from the latest GitHub Release, or from the `pocketso-flasher-linux-x86_64` artifact on the Actions page. This is a native Qt 6 / QML + C++ Linux build, not an AppImage.
+
+Install the required runtime dependencies on Arch Linux:
 
 ```bash
-chmod +x PocketsoFlasher-x86_64.AppImage
-./PocketsoFlasher-x86_64.AppImage
+sudo pacman -S --needed qt6-base qt6-declarative qt6-quickcontrols2 qt6-wayland polkit util-linux
+tar -xzf PocketsoFlasher-linux-x86_64.tar.gz
+sudo install -Dm755 usr/bin/PocketsoFlasher /usr/local/bin/PocketsoFlasher
+sudo install -Dm755 usr/libexec/pocketso-flash-root /usr/local/libexec/pocketso-flash-root
+sudo install -Dm644 usr/share/applications/pocketso-flasher.desktop /usr/local/share/applications/pocketso-flasher.desktop
+sudo install -Dm644 usr/share/icons/hicolor/scalable/apps/pocketso-flasher.svg /usr/local/share/icons/hicolor/scalable/apps/pocketso-flasher.svg
 ```
 
-The app can download the latest published Pocketso ISO or use a local ISO. Select a USB device, type its exact device path, confirm the erase warning, and authorize the write. It refuses to flash the currently running system disk and requires a whole USB/removable drive. **The selected USB is erased completely.** See [appimage/README.md](appimage/README.md).
+Launch it as your normal desktop user:
+
+```bash
+PocketsoFlasher
+```
+
+The GUI does not need `sudo`. When you start flashing, PolicyKit (`pkexec`) requests administrator authentication for the separate C++ USB writer only. A desktop PolicyKit authentication agent must be running. The app can download the latest published Pocketso ISO or use a local ISO. Select a USB device, type its exact device path, confirm the erase warning, and authorize the write. It refuses to flash the running system disk and requires a whole USB/removable drive. **The selected USB is erased completely.** See [flasher/README.md](flasher/README.md) for build and installation details.
 
 ## Install Pocketso
 
@@ -97,8 +109,8 @@ python -m py_compile profile/airootfs/usr/share/pocketso/installer/app.py
 python -m py_compile profile/airootfs/usr/share/pocketso/installer/backend.py
 python scripts/check-installer-packages.py
 python scripts/check-installer-qml.py
-python -m py_compile appimage/pocketso_flasher.py appimage/pocketso-flash-root
-bash -n appimage/build-appimage.sh
+cmake -S flasher -B build/flasher -DCMAKE_BUILD_TYPE=Release
+cmake --build build/flasher --parallel
 ```
 
 See [docs/INSTALLER.md](docs/INSTALLER.md) and [docs/PAKET.md](docs/PAKET.md) for more details.

@@ -2,7 +2,7 @@
 Type=Application
 Name=Pocketso Flasher
 Comment=Download and flash Pocketso Linux to a USB drive
-Exec=AppRun
+Exec=PocketsoFlasher
 Icon=pocketso-flasher
 Categories=System;Utility;
 Terminal=false
