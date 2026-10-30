@@ -3,7 +3,7 @@
 #include <QObject>
 #include <QVariantList>
 #include <QProcess>
-#include <QNetworkAccessManager>
+#include <QNetworkAccessManager>\n#include <QSaveFile>
 #include <QPointer>
 
 class QNetworkReply;
@@ -53,7 +53,7 @@ private:
     bool m_busy = false;
     QStringList m_logLines;
     QNetworkAccessManager m_network;
-    QPointer<QNetworkReply> m_downloadReply;
+    QPointer<QNetworkReply> m_downloadReply;\n    QSaveFile m_downloadOutput;\n    QString m_downloadDestination;
     QProcess m_flashProcess;
     QString m_flashBuffer;
 };
