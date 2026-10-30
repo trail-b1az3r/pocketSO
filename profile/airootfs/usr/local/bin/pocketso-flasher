@@ -114,11 +114,11 @@ mkdir -p "$MOUNTPOINT/boot"
 mount "$EFI_PART" "$MOUNTPOINT/boot"
 
 dialog --title "Installing Arch Linux" --infobox "Downloading and installing the base system. This can take several minutes." 7 72
-BASE_PKGS=(base linux linux-lts linux-firmware archlinux-keyring grub efibootmgr dosfstools e2fsprogs networkmanager iwd wpa_supplicant sudo git base-devel go dialog nano vim man-db man-pages texinfo mesa vulkan-icd-loader pipewire pipewire-alsa pipewire-pulse wireplumber bluez bluez-utils udisks2 gvfs gvfs-mtp gvfs-smb polkit firefox)
+BASE_PKGS=(base linux linux-lts linux-firmware archlinux-keyring grub efibootmgr dosfstools e2fsprogs networkmanager iwd wpa_supplicant sudo git base-devel go dialog nano vim man-db man-pages texinfo mesa vulkan-icd-loader pipewire pipewire-alsa pipewire-pulse wireplumber bluez bluez-utils zram-generator network-manager-applet udisks2 gvfs gvfs-mtp gvfs-smb polkit firefox)
 case "$DESKTOP" in
   mate) DESKTOP_PKGS=(xorg-server mate mate-extra lightdm lightdm-gtk-greeter mate-terminal) ;;
-  kde) DESKTOP_PKGS=(plasma-meta konsole dolphin sddm xorg-server) ;;
-  both) DESKTOP_PKGS=(xorg-server mate mate-extra lightdm lightdm-gtk-greeter mate-terminal plasma-meta konsole dolphin sddm) ;;
+  kde) DESKTOP_PKGS=(plasma-meta plasma-nm konsole dolphin sddm xorg-server) ;;
+  both) DESKTOP_PKGS=(xorg-server mate mate-extra lightdm lightdm-gtk-greeter mate-terminal plasma-meta plasma-nm konsole dolphin sddm) ;;
 esac
 
 pacstrap -K "$MOUNTPOINT" "${BASE_PKGS[@]}" "${DESKTOP_PKGS[@]}"
@@ -134,6 +134,13 @@ printf 'pocketso\n' > "$MOUNTPOINT/etc/hostname"
 arch-chroot "$MOUNTPOINT" useradd -m -G wheel,audio,video,storage,optical -s /bin/bash "$USERNAME"
 printf '%s:%s\n' "$USERNAME" "$PASSWORD" | arch-chroot "$MOUNTPOINT" chpasswd
 unset PASSWORD
+install -d "$MOUNTPOINT/etc"
+cat > "$MOUNTPOINT/etc/systemd/zram-generator.conf" <<'EOF'
+[zram0]
+zram-size = ram / 2
+compression-algorithm = zstd
+swap-priority = 100
+EOF
 install -d -m 0750 "$MOUNTPOINT/etc/sudoers.d"
 printf '%%wheel ALL=(ALL:ALL) ALL\n' > "$MOUNTPOINT/etc/sudoers.d/10-wheel"
 chmod 0440 "$MOUNTPOINT/etc/sudoers.d/10-wheel"
