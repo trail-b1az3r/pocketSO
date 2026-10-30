@@ -5,7 +5,7 @@ Pocketso Flasher is a native Qt 6 / QML application with a C++ backend and a sep
 ## Build on Arch Linux
 
 ```bash
-sudo pacman -S --needed base-devel cmake ninja qt6-base qt6-declarative qt6-tools polkit util-linux
+sudo pacman -S --needed base-devel cmake ninja qt6-base qt6-declarative qt6-quickcontrols2 qt6-tools polkit util-linux
 cmake -S flasher -B build/flasher -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
 cmake --build build/flasher
 sudo cmake --install build/flasher
