@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Pocketso USB Flasher
+Comment=Install Pocketso Linux onto a separate USB drive
+Exec=mate-terminal --title="Pocketso USB Flasher" -- sudo /usr/local/bin/pocketso-flasher
+Icon=drive-removable-media
+Terminal=false
+Categories=System;Utility;
