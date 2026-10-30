@@ -14,11 +14,15 @@ if [[ -n "$ROOT_PARENT" ]]; then ROOT_DISK="/dev/$ROOT_PARENT"; else ROOT_DISK="
 protect_disk() {
   local disk="$1"
   [[ -b "$disk" && "$disk" != "$ROOT_DISK" ]] || return 0
+  local transport removable
+  read -r transport removable < <(lsblk -dnro TRAN,RM "$disk")
+  # Preserve normal read/write behavior for other removable USB storage.
+  [[ "$transport" != usb && "$removable" != 1 ]] || return 0
   blockdev --setro "$disk" || logger -t pocketso-disk-guard "Could not set read-only: $disk"
   while read -r part; do
     [[ -b "$part" ]] && blockdev --setro "$part" || true
   done < <(lsblk -lnpo NAME "$disk" | tail -n +2)
-  logger -t pocketso-disk-guard "Protected non-system disk read-only: $disk"
+  logger -t pocketso-disk-guard "Protected internal disk read-only: $disk"
 }
 
 if [[ "$MODE" == --device ]]; then
