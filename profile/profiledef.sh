@@ -14,4 +14,5 @@ file_permissions=(
   ["/usr/local/bin/pocketso-flasher"]="0:0:755"
   ["/usr/local/bin/pocketso-installer"]="0:0:755"
   ["/usr/share/pocketso/disk-guard"]="0:0:755"
+  ["/usr/share/pocketso/paket"]="0:0:644"
 )
