@@ -12,7 +12,7 @@ This repository builds a bootable Archiso installer. Boot it from one USB drive,
 - GRUB for Legacy BIOS and UEFI (UEFI install uses `--no-nvram`)
 - Persistent ext4 root filesystem
 - Linux firmware, NetworkManager, iwd and common desktop hardware support
-- Installed-system Disk Guard marks non-system internal disks read-only
+- Disk Guard marks non-system internal disks read-only in both the live installer and installed system
 - GitHub Actions builds the installer ISO and publishes it as an artifact
 
 ## Build the ISO
