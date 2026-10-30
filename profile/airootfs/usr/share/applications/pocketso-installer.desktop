@@ -1,8 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=Pocketso USB Installer
-Comment=Install persistent Pocketso Linux onto a USB drive
-Exec=/usr/bin/pocketso-installer
-Icon=drive-removable-media
-Terminal=false
-Categories=System;Utility;
