@@ -45,7 +45,7 @@ device_parent() {
 BOOT_DISK="$(device_parent "$BOOT_SOURCE")"
 ROOT_DISK="$(device_parent "$ROOT_SOURCE")"
 
-mapfile -t DISKS < <(lsblk -dpbno NAME,SIZE,MODEL,TRAN,RM,TYPE | awk '$6=="disk" && ($4=="usb" || $5=="1") {print $1}')
+mapfile -t DISKS < <(lsblk -dpbno NAME,SIZE,TRAN,RM,TYPE | awk '$5=="disk" && ($3=="usb" || $4=="1") {print $1}')
 MENU=()
 for disk in "${DISKS[@]}"; do
   [[ -b "$disk" ]] || continue
