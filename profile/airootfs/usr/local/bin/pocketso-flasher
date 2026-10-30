@@ -116,9 +116,9 @@ mount "$EFI_PART" "$MOUNTPOINT/boot"
 dialog --title "Installing Arch Linux" --infobox "Downloading and installing the base system. This can take several minutes." 7 72
 BASE_PKGS=(base linux linux-lts linux-firmware archlinux-keyring grub efibootmgr dosfstools e2fsprogs networkmanager iwd wpa_supplicant sudo git base-devel go dialog nano vim man-db man-pages texinfo mesa vulkan-icd-loader pipewire pipewire-alsa pipewire-pulse wireplumber bluez bluez-utils zram-generator network-manager-applet udisks2 gvfs gvfs-mtp gvfs-smb polkit firefox)
 case "$DESKTOP" in
-  mate) DESKTOP_PKGS=(xorg-server mate mate-extra lightdm lightdm-gtk-greeter mate-terminal) ;;
+  mate) DESKTOP_PKGS=(xorg-server caja marco mate-backgrounds mate-control-center mate-desktop mate-icon-theme mate-menus mate-notification-daemon mate-panel mate-polkit mate-session-manager mate-settings-daemon mate-themes mate-user-guide mate-terminal atril engrampa eom mate-applets mate-calc mate-media mate-power-manager mate-screensaver mate-system-monitor mate-utils mozo pluma lightdm lightdm-gtk-greeter) ;;
   kde) DESKTOP_PKGS=(plasma-meta plasma-nm konsole dolphin sddm xorg-server) ;;
-  both) DESKTOP_PKGS=(xorg-server mate mate-extra lightdm lightdm-gtk-greeter mate-terminal plasma-meta plasma-nm konsole dolphin sddm) ;;
+  both) DESKTOP_PKGS=(xorg-server caja marco mate-backgrounds mate-control-center mate-desktop mate-icon-theme mate-menus mate-notification-daemon mate-panel mate-polkit mate-session-manager mate-settings-daemon mate-themes mate-user-guide mate-terminal atril engrampa eom mate-applets mate-calc mate-media mate-power-manager mate-screensaver mate-system-monitor mate-utils mozo pluma lightdm lightdm-gtk-greeter plasma-meta plasma-nm konsole dolphin sddm) ;;
 esac
 
 pacstrap -K "$MOUNTPOINT" "${BASE_PKGS[@]}" "${DESKTOP_PKGS[@]}"
