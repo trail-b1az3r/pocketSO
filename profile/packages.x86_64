@@ -4,6 +4,8 @@ linux-firmware
 linux-lts
 archlinux-keyring
 archiso
+mkinitcpio
+mkinitcpio-archiso
 grub
 syslinux
 efibootmgr
