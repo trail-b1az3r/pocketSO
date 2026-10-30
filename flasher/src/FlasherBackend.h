@@ -5,7 +5,6 @@
 #include <QProcess>
 #include <QNetworkAccessManager>
 #include <QSaveFile>
-#include <QPointer>
 
 class QNetworkReply;
 
@@ -54,7 +53,6 @@ private:
     bool m_busy = false;
     QStringList m_logLines;
     QNetworkAccessManager m_network;
-    QPointer<QNetworkReply> m_downloadReply;
     QSaveFile m_downloadOutput;
     QProcess m_flashProcess;
     QString m_flashBuffer;
