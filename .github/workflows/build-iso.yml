@@ -139,6 +139,12 @@ jobs:
     needs: [build-iso, build-native-flasher]
     runs-on: ubuntu-latest
     steps:
+      - name: Check out commit to tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+
       - name: Validate release tag
         env:
           RELEASE_TAG: ${{ inputs.release_tag }}
@@ -155,9 +161,6 @@ jobs:
           REPOSITORY: ${{ github.repository }}
           COMMIT_SHA: ${{ github.sha }}
         run: |
-          git init release-tag
-          cd release-tag
-          git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${REPOSITORY}.git"
           if git ls-remote --exit-code --tags origin "refs/tags/${RELEASE_TAG}" >/dev/null 2>&1; then
             echo "Tag ${RELEASE_TAG} already exists. Choose a new version."
             exit 1
