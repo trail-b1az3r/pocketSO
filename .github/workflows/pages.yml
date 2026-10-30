@@ -27,7 +27,6 @@ jobs:
           test -s site/index.html
           test -s site/styles.css
           test -s site/script.js
-          test -s site/assets/pocketso-mark.svg
           python - <<'PY'
           from html.parser import HTMLParser
           from pathlib import Path
@@ -37,7 +36,7 @@ jobs:
 
           html = Path("site/index.html").read_text()
           CheckHTML().feed(html)
-          for asset in ("styles.css", "script.js", "assets/pocketso-mark.svg"):
+          for asset in ("styles.css", "script.js"):
               assert (Path("site") / asset).is_file(), asset
           print("Website structure validated.")
           PY

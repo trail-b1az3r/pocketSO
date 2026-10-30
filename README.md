@@ -9,6 +9,8 @@ Pocketso is a portable, persistent Arch Linux installation designed to live enti
 This repository builds a bootable Archiso installer. Boot it from one USB drive, then use the **Pocketso USB Installer** graphical app to install Pocketso onto a second USB drive.
 
 - x86_64 Arch Linux base, Pacman and yay
+- Optional **paket** package-management frontend for the custom-manager ISO build
+- Real Fastfetch binary with a Pocketso USB-drive ASCII logo and custom configuration
 - Python + PySide6 + Qt Quick/QML graphical installer
 - MATE, KDE Plasma, or both selectable in the installer
 - GPT with a BIOS boot partition and EFI System Partition
@@ -25,18 +27,30 @@ The Pocketso website lives in `site/` and is deployed to GitHub Pages by `.githu
 
 ## Build the ISO
 
-The supported build environment is Arch Linux with `archiso`.
+The supported build environment is Arch Linux with `archiso`. Use the interactive builder to choose the package-manager mode:
 
 ```bash
 sudo pacman -Syu --needed archiso
 git clone https://github.com/trail-b1az3r/pocketSO.git
 cd pocketSO
-sudo mkarchiso -v -w /tmp/pocketso-work -o out profile
+sudo bash build.sh
 ```
 
-The ISO will be written to `out/`.
+Or select a mode directly:
 
-Every push to `main`, pull request and manual workflow dispatch runs the ISO build. CI also compiles the Python app/backend and checks the installer package names against current Arch repositories. Successful builds are uploaded as the `pocketso-installer-iso` artifact. A tag beginning with `v` also creates a GitHub Release containing the ISO, AppImage and checksums.
+```bash
+sudo bash build.sh --manager arch
+sudo bash build.sh --manager paket
+```
+
+1. **Arch package managers:** standard Pacman + yay; no `paket` command is installed.
+2. **Pocketso paket:** installs `paket` as the user-facing frontend, while Pacman remains the native dependency, signature, hook, and transaction engine. yay remains available.
+
+Archiso itself always uses Pacman internally to assemble an Arch ISO; the second option changes the package-management tools installed in the resulting Pocketso environment, not Archiso's build engine.
+
+The ISO is written to `out/` and a `SHA256SUMS` file is generated. Build output and work directories can be changed with `--out DIR` and `--work DIR`. See [docs/PAKET.md](docs/PAKET.md) for all Paket commands.
+
+Every push to `main`, pull request and manual workflow dispatch runs the CI ISO build. CI also compiles the Python app/backend and checks the installer package names against current Arch repositories. Successful builds are uploaded as the `pocketso-installer-iso` artifact. A tag beginning with `v` also creates a GitHub Release containing the ISO, AppImage and checksums.
 
 ## Flash the installer USB from Linux
 
@@ -74,9 +88,11 @@ The app can download the latest published Pocketso ISO or use a local ISO. Selec
 ## Development checks
 
 ```bash
+bash -n build.sh
 bash -n profile/airootfs/usr/local/bin/pocketso-flasher
 bash -n profile/airootfs/usr/local/bin/pocketso-installer
 bash -n profile/airootfs/root/customize_airootfs.sh
+python -m py_compile profile/airootfs/usr/share/pocketso/paket
 python -m py_compile profile/airootfs/usr/share/pocketso/installer/app.py
 python -m py_compile profile/airootfs/usr/share/pocketso/installer/backend.py
 python scripts/check-installer-packages.py
@@ -85,4 +101,4 @@ python -m py_compile appimage/pocketso_flasher.py appimage/pocketso-flash-root
 bash -n appimage/build-appimage.sh
 ```
 
-See [docs/INSTALLER.md](docs/INSTALLER.md) for implementation and safety details.
+See [docs/INSTALLER.md](docs/INSTALLER.md) and [docs/PAKET.md](docs/PAKET.md) for more details.

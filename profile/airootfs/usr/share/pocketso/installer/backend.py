@@ -16,6 +16,7 @@ from pathlib import Path
 MIN_BYTES = 30_000_000_000
 MOUNT = Path("/mnt/pocketso-target")
 PROFILE = Path("/usr/share/pocketso")
+PACKAGE_MANAGER_FILE = Path("/etc/pocketso/package-manager")
 
 
 def emit(message: str) -> None:
@@ -187,6 +188,7 @@ def install(config: dict) -> None:
 
         base = [
             "base", "linux", "linux-lts", "linux-firmware", "archlinux-keyring", "grub",
+            "python", "fastfetch",
             "efibootmgr", "dosfstools", "e2fsprogs", "networkmanager", "iwd",
             "wpa_supplicant", "sudo", "git", "base-devel", "go", "dialog", "nano",
             "vim", "man-db", "man-pages", "texinfo", "mesa", "vulkan-icd-loader",
@@ -213,6 +215,34 @@ def install(config: dict) -> None:
         chroot("useradd", "-m", "-G", "wheel,audio,video,storage,optical", "-s", "/bin/bash", username)
         chroot("chpasswd", input_text=f"{username}:{password}\n")
         password = ""
+
+        # Carry the Pocketso Fastfetch identity into the installed USB system.
+        fastfetch_dir = MOUNT / "usr/share/pocketso/fastfetch"
+        fastfetch_dir.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(PROFILE / "fastfetch/pocketso.txt", fastfetch_dir / "pocketso.txt")
+        shutil.copy2(PROFILE / "fastfetch/config.jsonc", fastfetch_dir / "config.jsonc")
+        user_home = MOUNT / "home" / username
+        user_config = user_home / ".config/fastfetch"
+        user_config.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(PROFILE / "fastfetch/config.jsonc", user_config / "config.jsonc")
+        shutil.chown(user_home / ".config", user=username, group=username)
+        shutil.chown(user_config, user=username, group=username)
+        shutil.chown(user_config / "config.jsonc", user=username, group=username)
+        bashrc = user_home / ".bashrc"
+        with bashrc.open("a", encoding="utf-8") as handle:
+            handle.write("\n# Pocketso Fastfetch\nif [[ $- == *i* ]] && command -v fastfetch >/dev/null 2>&1; then\n  fastfetch\nfi\n")
+
+        # The builder writes this marker only for package-manager option 2.
+        manager = PACKAGE_MANAGER_FILE.read_text(encoding="utf-8").strip() if PACKAGE_MANAGER_FILE.is_file() else "arch"
+        if manager == "paket":
+            paket_target = MOUNT / "usr/local/bin/paket"
+            paket_target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(PROFILE / "paket", paket_target)
+            paket_target.chmod(0o755)
+            emit("Paket frontend enabled on the installed USB system.")
+        elif manager != "arch":
+            raise RuntimeError(f"Unknown Pocketso package manager mode: {manager}")
+
         (MOUNT / "etc/zram-generator.conf").write_text("[zram0]\nzram-size = ram / 2\ncompression-algorithm = zstd\nswap-priority = 100\n")
         sudoers = MOUNT / "etc/sudoers.d/10-wheel"
         sudoers.parent.mkdir(parents=True, exist_ok=True)

@@ -18,6 +18,7 @@ dialog
 python
 pyside6
 qt6-declarative
+fastfetch
 sudo
 git
 base-devel

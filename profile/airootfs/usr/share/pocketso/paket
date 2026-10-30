@@ -1,0 +1,266 @@
+#!/usr/bin/env python3
+"""Pocketso paket CLI: a friendly frontend to the native Arch pacman engine.
+
+Paket intentionally delegates dependency solving, package transactions, hooks,
+and signature handling to pacman. It does not replace Arch's package database.
+"""
+from __future__ import annotations
+
+import argparse
+import glob
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+
+PACMAN = os.environ.get("POCKETSO_PACMAN", "/usr/bin/pacman")
+NAME_RE = re.compile(r"^[A-Za-z0-9@._+:-]+$")
+
+
+def fail(message: str, code: int = 2) -> "NoReturn":
+    print(f"paket: {message}", file=sys.stderr)
+    raise SystemExit(code)
+
+
+def package_names_from_stdin() -> list[str]:
+    names: list[str] = []
+    for line_no, raw in enumerate(sys.stdin, 1):
+        value = raw.strip()
+        if not value or value.startswith("#"):
+            continue
+        if value.startswith("{"):
+            try:
+                item = json.loads(value)
+            except json.JSONDecodeError as exc:
+                fail(f"invalid JSONL5 entry on line {line_no}: {exc}")
+            if isinstance(item, dict):
+                value = str(item.get("name", ""))
+            elif isinstance(item, str):
+                value = item
+            else:
+                fail(f"line {line_no} must be a package object or string")
+        if not NAME_RE.fullmatch(value):
+            fail(f"invalid package name on line {line_no}: {value!r}")
+        names.append(value)
+    return list(dict.fromkeys(names))
+
+
+def manifest_records() -> list[dict[str, str]]:
+    result = subprocess.run(
+        [PACMAN, "-Qqe"], check=True, text=True, capture_output=True
+    )
+    records: list[dict[str, str]] = []
+    for name in result.stdout.splitlines():
+        name = name.strip()
+        if not name:
+            continue
+        version_result = subprocess.run(
+            [PACMAN, "-Q", name], check=True, text=True, capture_output=True
+        )
+        fields = version_result.stdout.strip().split()
+        records.append({"name": name, "version": fields[1] if len(fields) > 1 else ""})
+    return records
+
+
+def write_manifest(path: Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    records = manifest_records()
+    with path.open("w", encoding="utf-8") as handle:
+        for record in records:
+            handle.write(json.dumps(record, ensure_ascii=False, separators=(",", ":")) + "\n")
+    print(f"Saved {len(records)} explicitly installed packages to {path}")
+
+
+def backup_one(name: str, destination: Path) -> None:
+    if not NAME_RE.fullmatch(name):
+        fail(f"invalid package name: {name!r}")
+    query = subprocess.run([PACMAN, "-Q", name], text=True, capture_output=True)
+    if query.returncode:
+        fail(f"{name} is not installed")
+    fields = query.stdout.strip().split()
+    if len(fields) < 2:
+        fail(f"could not read installed version for {name}")
+    prefix = f"{name}-{fields[1]}-"
+    matches = sorted(
+        p for p in glob.glob("/var/cache/pacman/pkg/*")
+        if Path(p).name.startswith(prefix) and ".pkg.tar" in Path(p).name
+    )
+    if not matches:
+        fail(f"no cached package archive for {name}; run 'paket -I {name}' or download it first")
+    destination.mkdir(parents=True, exist_ok=True)
+    target = destination / Path(matches[-1]).name
+    shutil.copy2(matches[-1], target)
+    print(f"Backed up {name} to {target}")
+
+
+def make_unverified_config() -> str:
+    source = Path("/etc/pacman.conf")
+    if not source.is_file():
+        fail("/etc/pacman.conf is missing; cannot create temporary key-ignoring config")
+    lines = source.read_text(encoding="utf-8").splitlines()
+    output: list[str] = []
+    for line in lines:
+        if re.match(r"^\s*(SigLevel|LocalFileSigLevel)\s*=", line, re.I):
+            key = line.split("=", 1)[0].strip()
+            output.append(f"{key} = Never")
+        else:
+            output.append(line)
+    if not any(re.match(r"^\s*SigLevel\s*=", line, re.I) for line in output):
+        try:
+            index = output.index("[options]") + 1
+        except ValueError:
+            index = 0
+        output.insert(index, "SigLevel = Never")
+    fd, path = tempfile.mkstemp(prefix="paket-no-signatures-", suffix=".conf")
+    with os.fdopen(fd, "w", encoding="utf-8") as handle:
+        handle.write("\n".join(output) + "\n")
+    return path
+
+
+def run_pacman(args: list[str], *, timeout: int | None, quiet: bool,
+               verbose: bool, no_confirm: bool, ignore_keys: bool) -> int:
+    command = [PACMAN]
+    config_path = None
+    if ignore_keys:
+        if os.geteuid() != 0:
+            fail("-K requires root privileges")
+        print("WARNING: package signature verification is DISABLED for this command.", file=sys.stderr)
+        print("Only use -K when you explicitly trust the configured repositories and packages.", file=sys.stderr)
+        config_path = make_unverified_config()
+        command.extend(["--config", config_path])
+    if quiet:
+        command.append("--quiet")
+    if verbose:
+        command.append("--verbose")
+    if no_confirm:
+        command.append("--noconfirm")
+    command.extend(args)
+    try:
+        completed = subprocess.run(command, timeout=timeout)
+        return completed.returncode
+    except subprocess.TimeoutExpired:
+        print(f"paket: operation exceeded timeout ({timeout}s)", file=sys.stderr)
+        return 124
+    except FileNotFoundError:
+        fail(f"pacman executable not found: {PACMAN}", 127)
+    finally:
+        if config_path:
+            try:
+                os.unlink(config_path)
+            except FileNotFoundError:
+                pass
+
+
+def main(argv: list[str]) -> int:
+    parser = argparse.ArgumentParser(
+        prog="paket",
+        description="Pocketso package frontend (uses pacman for native Arch transactions)",
+        add_help=True,
+    )
+    parser.add_argument("-T", dest="timeout", type=int, metavar="SECONDS",
+                        help="set an operation timeout")
+    parser.add_argument("-V", dest="verbose", action="store_true", help="verbose output")
+    parser.add_argument("-Q", dest="quiet", action="store_true", help="quiet output")
+    parser.add_argument("-K", dest="ignore_keys", action="store_true",
+                        help="disable package signature checks for this command (unsafe)")
+    parser.add_argument("-N", dest="no_confirm", action="store_true",
+                        help="do not ask for confirmation")
+    parser.add_argument("-I", dest="install", nargs="+", metavar="PACKAGE",
+                        help="install package(s)")
+    parser.add_argument("-S", dest="sync", action="store_true",
+                        help="synchronize repositories and perform a full system upgrade")
+    parser.add_argument("-Rdd", dest="remove_deps", nargs="+", metavar="PACKAGE",
+                        help="remove package(s), ignoring dependency checks")
+    parser.add_argument("-R", dest="remove", nargs="+", metavar="PACKAGE",
+                        help="remove package(s)")
+    parser.add_argument("-B", dest="backup", nargs="?", const="packages.jsonl5",
+                        metavar="FILE", help="export explicitly installed packages")
+    parser.add_argument("-Bdd", dest="backup_one", nargs="+", metavar="PACKAGE [DIR]",
+                        help="back up one cached package archive")
+    parser.add_argument("-G", dest="search", nargs="+", metavar="QUERY",
+                        help="search repository packages")
+    parser.add_argument("-L", dest="list_installed", action="store_true",
+                        help="list installed packages")
+    parser.add_argument("-X", dest="export", nargs="?", const="packages.jsonl5",
+                        metavar="FILE", help="create a JSONL5 package manifest")
+    parser.add_argument("-Z", dest="import_file", metavar="FILE",
+                        help="install packages listed in a JSONL5 manifest")
+    args = parser.parse_args(argv)
+
+    if args.timeout is not None and args.timeout < 1:
+        fail("-T timeout must be at least one second")
+    actions = [
+        args.install is not None, args.sync, args.remove_deps is not None,
+        args.remove is not None, args.backup is not None,
+        args.backup_one is not None, args.search is not None,
+        args.list_installed, args.export is not None, args.import_file is not None,
+    ]
+    if sum(actions) != 1:
+        parser.error("choose exactly one operation")
+
+    if args.backup is not None or args.export is not None:
+        write_manifest(Path(args.backup if args.backup is not None else args.export))
+        return 0
+    if args.backup_one is not None:
+        values = args.backup_one
+        if len(values) > 2:
+            parser.error("-Bdd accepts a package name and optional destination directory")
+        backup_one(values[0], Path(values[1] if len(values) == 2 else "paket-backup"))
+        return 0
+    if args.import_file:
+        path = Path(args.import_file)
+        if not path.is_file():
+            fail(f"manifest not found: {path}")
+        with path.open(encoding="utf-8") as handle:
+            names = package_names_from_stdin_from_file(handle)
+        if not names:
+            print("No packages listed; nothing to install.")
+            return 0
+        operation = ["-S", "--needed", *names]
+    elif args.install is not None:
+        operation = ["-S", "--needed", *args.install]
+    elif args.sync:
+        operation = ["-Syu"]
+    elif args.remove_deps is not None:
+        operation = ["-Rdd", *args.remove_deps]
+    elif args.remove is not None:
+        operation = ["-R", *args.remove]
+    elif args.search is not None:
+        operation = ["-Ss", " ".join(args.search)]
+    else:
+        operation = ["-Q"]
+
+    return run_pacman(
+        operation, timeout=args.timeout, quiet=args.quiet, verbose=args.verbose,
+        no_confirm=args.no_confirm, ignore_keys=args.ignore_keys,
+    )
+
+
+def package_names_from_stdin_from_file(handle) -> list[str]:
+    names: list[str] = []
+    for line_no, raw in enumerate(handle, 1):
+        value = raw.strip()
+        if not value or value.startswith("#"):
+            continue
+        try:
+            item = json.loads(value)
+        except json.JSONDecodeError as exc:
+            fail(f"invalid JSONL5 entry on line {line_no}: {exc}")
+        if isinstance(item, dict):
+            value = str(item.get("name", ""))
+        elif isinstance(item, str):
+            value = item
+        else:
+            fail(f"line {line_no} must be a JSON object or string")
+        if not NAME_RE.fullmatch(value):
+            fail(f"invalid package name on line {line_no}: {value!r}")
+        names.append(value)
+    return list(dict.fromkeys(names))
+
+
+if __name__ == "__main__":
+    raise SystemExit(main(sys.argv[1:]))
