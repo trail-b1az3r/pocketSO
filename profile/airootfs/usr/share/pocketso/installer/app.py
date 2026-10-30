@@ -105,8 +105,11 @@ class InstallerBridge(QObject):
         if not re.fullmatch(r"[a-z_][a-z0-9_-]{0,31}", username):
             self.installFailed.emit("Use a valid lowercase Linux username (letters, numbers, _ or -).")
             return
-        if len(password) < 10 or "\n" in password or "\r" in password:
-            self.installFailed.emit("Use a password with at least 10 characters and no line breaks.")
+        if password != password_confirm:
+            self.installFailed.emit("The password entries do not match.")
+            return
+        if len(password) < 10 or ":" in password or "\n" in password or "\r" in password:
+            self.installFailed.emit("Use a password with at least 10 characters, no colon, and no line breaks.")
             return
         self._busy = True
         self.busyChanged.emit(True)
