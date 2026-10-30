@@ -92,8 +92,8 @@ class InstallerBridge(QObject):
     def refreshDrives(self) -> None:
         self.drivesChanged.emit(json.dumps(available_drives()))
 
-    @Slot(str, str, str, str, str)
-    def startInstall(self, target: str, desktop: str, username: str, password: str, confirmation: str) -> None:
+    @Slot(str, str, str, str, str, str)
+    def startInstall(self, target: str, desktop: str, username: str, password: str, password_confirm: str, confirmation: str) -> None:
         if self._busy:
             return
         if not target or confirmation != target:
