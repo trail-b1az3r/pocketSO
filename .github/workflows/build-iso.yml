@@ -18,36 +18,31 @@ jobs:
   build-iso:
     name: Build x86_64 installer ISO
     runs-on: ubuntu-latest
-    container:
-      image: archlinux:latest
     timeout-minutes: 90
     steps:
-      - name: Install build dependencies
-        run: |
-          pacman -Syu --noconfirm
-          pacman -S --noconfirm --needed archiso shellcheck git grub
-          pacman-key --init
-          pacman-key --populate archlinux
-
       - name: Check out source
         uses: actions/checkout@v4
 
-      - name: Validate scripts
-        run: |
-          bash -n profile/airootfs/root/customize_airootfs.sh
-          bash -n profile/airootfs/usr/local/bin/pocketso-flasher
-          bash -n profile/airootfs/usr/share/pocketso/disk-guard
-          shellcheck -S warning profile/airootfs/root/customize_airootfs.sh profile/airootfs/usr/local/bin/pocketso-flasher profile/airootfs/usr/share/pocketso/disk-guard
-
-      - name: Build ISO
+      - name: Build ISO in privileged Arch Linux container
         run: |
           mkdir -p out
-          mkarchiso -v -w /tmp/pocketso-work -o out profile
-
-      - name: Generate checksums
-        run: |
-          cd out
-          sha256sum *.iso > SHA256SUMS
+          docker run --privileged --security-opt seccomp=unconfined --rm \
+            --volume "$GITHUB_WORKSPACE:/workspace" \
+            --workdir /workspace \
+            archlinux:latest \
+            bash -euxo pipefail -c '
+              pacman -Syu --noconfirm
+              pacman -S --noconfirm --needed archiso shellcheck git grub
+              pacman-key --init
+              pacman-key --populate archlinux
+              bash -n profile/airootfs/root/customize_airootfs.sh
+              bash -n profile/airootfs/usr/local/bin/pocketso-flasher
+              bash -n profile/airootfs/usr/share/pocketso/disk-guard
+              shellcheck -S warning profile/airootfs/root/customize_airootfs.sh profile/airootfs/usr/local/bin/pocketso-flasher profile/airootfs/usr/share/pocketso/disk-guard
+              mkarchiso -v -w /tmp/pocketso-work -o out profile
+              cd out
+              sha256sum *.iso > SHA256SUMS
+            '
 
       - name: Upload installer ISO
         uses: actions/upload-artifact@v4
