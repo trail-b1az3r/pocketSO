@@ -163,7 +163,7 @@ def normalize_shortcuts(argv: list[str]) -> list[str]:
         "-ISyu": ["-S"],
         "-Syu": ["-S"],
         "-Su": ["-S"],
-        "-Syyu": ["-S", "--refresh-force"],
+        "-Syyu": ["--refresh-force-upgrade"],
         "-Sy": ["--refresh"],
         "-Syy": ["--refresh-force"],
     }
@@ -207,6 +207,9 @@ def main(argv: list[str]) -> int:
                         help="refresh repository databases without upgrading")
     parser.add_argument("--refresh-force", dest="refresh_force", action="store_true",
                         help="force-refresh all repository databases")
+    parser.add_argument("--refresh-force-upgrade", dest="refresh_force_upgrade",
+                        action="store_true",
+                        help="force-refresh databases and perform a full system upgrade")
     parser.add_argument("-Rdd", dest="remove_deps", nargs="+", metavar="PACKAGE",
                         help="remove package(s), ignoring dependency checks")
     parser.add_argument("-R", dest="remove", nargs="+", metavar="PACKAGE",
@@ -228,7 +231,8 @@ def main(argv: list[str]) -> int:
     if args.timeout is not None and args.timeout < 1:
         fail("-T timeout must be at least one second")
     actions = [
-        args.install is not None, args.sync, args.refresh, args.refresh_force, args.remove_deps is not None,
+        args.install is not None, args.sync, args.refresh, args.refresh_force,
+        args.refresh_force_upgrade, args.remove_deps is not None,
         args.remove is not None, args.backup is not None,
         args.backup_one is not None, args.search is not None,
         args.list_installed, args.export is not None, args.import_file is not None,
@@ -259,6 +263,8 @@ def main(argv: list[str]) -> int:
         operation = ["-S", "--needed", *args.install]
     elif args.sync:
         operation = ["-Syu"]
+    elif args.refresh_force_upgrade:
+        operation = ["-Syyu"]
     elif args.refresh_force:
         operation = ["-Syy"]
     elif args.refresh:
