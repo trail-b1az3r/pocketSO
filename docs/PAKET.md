@@ -22,7 +22,7 @@ Build with `sudo ./build.sh --manager paket` or choose option 2 in the interacti
 | `paket -R PACKAGE...` | Remove packages using normal dependency checks. |
 | `paket -Rdd PACKAGE...` | Remove packages while ignoring dependency checks. Dangerous; can break the system. |
 | `paket -G QUERY...` | Search synchronized repository databases. |
-| `paket -L` | List explicitly installed packages. |
+| `paket -L` | List all installed packages. |
 | `paket -B [FILE]` | Export explicitly installed package names and versions (default: `packages.jsonl5`). |
 | `paket -Bdd PACKAGE [DIR]` | Copy an already-cached archive for one installed package (default directory: `paket-backup`). |
 | `paket -X [FILE]` | Export a JSONL5 package manifest (default: `packages.jsonl5`). |
