@@ -283,6 +283,10 @@ def main(argv: list[str]) -> int:
         return run_pacman(["-Qkk", *args.verify], timeout=args.timeout,
                           quiet=args.quiet, verbose=args.verbose,
                           no_confirm=False, ignore_keys=False)
+    if args.backup is not None or args.export is not None or args.backup_one is not None:
+        if any((args.verbose, args.quiet, args.ignore_keys, args.no_confirm,
+                args.timeout is not None, args.force, args.preview)):
+            parser.error("modifiers cannot be used with -B, -Bdd, or -X")
     if args.backup is not None or args.export is not None:
         write_manifest(Path(args.backup if args.backup is not None else args.export))
         return 0
