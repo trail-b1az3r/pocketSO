@@ -59,13 +59,13 @@ The table shows which modifiers can be used with each operation. “Yes” means
 | `-Syyu` force-refresh update | Yes | Yes | Yes | Yes | Yes | Yes | No* |
 | `-R` remove | Yes | Yes | Yes | Yes | Yes | No | No |
 | `-Rdd` dependency-ignoring remove | Yes | Yes | Yes | Yes | Yes | No | No |
-| `-G` search | Yes | Yes | No practical effect | No practical effect | Yes | No | No |
-| `-L` list | No additional effect | No additional effect | No | No | No | No | No |
+| `-G` search | Yes | Yes | Limited (does not affect an already-synced search) | No practical effect | Yes | No | No |
+| `-L` list | Yes | Yes | Limited (local query; no signature check) | Limited (no prompt) | Yes | No | No |
 | `-B` / `-X` export | No (rejected) | No (rejected) | No (rejected) | No (rejected) | No (rejected) | No | No |
 | `-Bdd` archive backup | No (rejected) | No (rejected) | No (rejected) | No (rejected) | No (rejected) | No | No |
 | `-Z` manifest import | Yes | Yes | Yes | Yes | Yes | Yes | Yes |
-| `-C` cache clean | Yes | Yes | Yes | Yes | Yes | No | No |
-| `-H` package info | Yes | Yes | Limited to repository lookup | No practical effect | Yes | No | No |
+| `-C` cache clean | Yes | Yes | Limited (no package download/signature check) | Yes (can skip cleanup confirmation) | Yes | No | No |
+| `-H` package info | Yes | Yes | Limited (metadata query; no package download) | No practical effect | Yes | No | No |
 | `-O` verify | Yes | Yes | No | No | Yes | No | No |
 
 `-P` is intentionally not enabled for `-Syyu`: the force-refresh-upgrade shortcut has its own dedicated Pacman operation and is not included in Paket's preview allowlist. Use `paket -P -S` for a preview of the ordinary full-upgrade operation.
