@@ -61,8 +61,8 @@ The table shows which modifiers can be used with each operation. “Yes” means
 | `-Rdd` dependency-ignoring remove | Yes | Yes | Yes | Yes | Yes | No | No |
 | `-G` search | Yes | Yes | No practical effect | No practical effect | Yes | No | No |
 | `-L` list | No additional effect | No additional effect | No | No | No | No | No |
-| `-B` / `-X` export | No additional effect | No additional effect | No | No | No | No | No |
-| `-Bdd` archive backup | No additional effect | No additional effect | No | No | No | No | No |
+| `-B` / `-X` export | No (rejected) | No (rejected) | No (rejected) | No (rejected) | No (rejected) | No | No |
+| `-Bdd` archive backup | No (rejected) | No (rejected) | No (rejected) | No (rejected) | No (rejected) | No | No |
 | `-Z` manifest import | Yes | Yes | Yes | Yes | Yes | Yes | Yes |
 | `-C` cache clean | Yes | Yes | Yes | Yes | Yes | No | No |
 | `-H` package info | Yes | Yes | Limited to repository lookup | No practical effect | Yes | No | No |
