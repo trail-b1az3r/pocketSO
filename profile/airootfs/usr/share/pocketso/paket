@@ -176,7 +176,7 @@ def normalize_shortcuts(argv: list[str]) -> list[str]:
         # -IVN firefox == -I -V -N firefox.
         if (token.startswith("-") and not token.startswith("--")
                 and len(token) > 2 and token[1] in "IRG"
-                and all(char in "VQKN" for char in token[2:])):
+                and all(char in "VQKNFP" for char in token[2:])):
             normalized.append("-" + token[1])
             normalized.extend("-" + char for char in token[2:])
             continue
@@ -199,6 +199,16 @@ def main(argv: list[str]) -> int:
                         help="disable package signature checks for this command (unsafe)")
     parser.add_argument("-N", dest="no_confirm", action="store_true",
                         help="do not ask for confirmation")
+    parser.add_argument("-F", dest="force", action="store_true",
+                        help="force overwrite conflicting files during sync/install operations")
+    parser.add_argument("-P", dest="preview", action="store_true",
+                        help="preview a sync/install transaction without changing packages")
+    parser.add_argument("-C", dest="clean_cache", action="store_true",
+                        help="clean unused package archives and cached sync databases")
+    parser.add_argument("-H", dest="info", nargs="+", metavar="PACKAGE",
+                        help="show detailed package information (installed or repository)")
+    parser.add_argument("-O", dest="verify", nargs="*", metavar="PACKAGE",
+                        help="verify installed package files; omit names to check all packages")
     parser.add_argument("-I", dest="install", nargs="+", metavar="PACKAGE",
                         help="install package(s)")
     parser.add_argument("-S", dest="sync", action="store_true",
@@ -230,16 +240,49 @@ def main(argv: list[str]) -> int:
 
     if args.timeout is not None and args.timeout < 1:
         fail("-T timeout must be at least one second")
+    if args.force and not (args.install is not None or args.sync or args.import_file):
+        parser.error("-F is supported only with -I, -S, or -Z")
+    if args.preview and not (args.install is not None or args.sync or args.import_file):
+        parser.error("-P is supported only with -I, -S, or -Z")
+    if args.force and args.preview:
+        parser.error("-F and -P cannot be combined")
     actions = [
         args.install is not None, args.sync, args.refresh, args.refresh_force,
         args.refresh_force_upgrade, args.remove_deps is not None,
         args.remove is not None, args.backup is not None,
         args.backup_one is not None, args.search is not None,
         args.list_installed, args.export is not None, args.import_file is not None,
+        args.clean_cache, args.info is not None, args.verify is not None,
     ]
     if sum(actions) != 1:
         parser.error("choose exactly one operation")
 
+    if args.clean_cache:
+        if args.force or args.preview:
+            parser.error("-F and -P cannot be used with -C")
+        return run_pacman(["-Sc"], timeout=args.timeout, quiet=args.quiet,
+                          verbose=args.verbose, no_confirm=args.no_confirm,
+                          ignore_keys=args.ignore_keys)
+    if args.info is not None:
+        if args.force or args.preview:
+            parser.error("-F and -P cannot be used with -H")
+        result = 0
+        for package in args.info:
+            installed = subprocess.run([PACMAN, "-Q", package],
+                                       stdout=subprocess.DEVNULL,
+                                       stderr=subprocess.DEVNULL).returncode == 0
+            code = run_pacman(["-Qi" if installed else "-Si", package],
+                              timeout=args.timeout, quiet=args.quiet,
+                              verbose=args.verbose, no_confirm=args.no_confirm,
+                              ignore_keys=args.ignore_keys)
+            result = result or code
+        return result
+    if args.verify is not None:
+        if args.force or args.preview or args.no_confirm or args.ignore_keys:
+            parser.error("-O does not accept -F, -P, -N, or -K")
+        return run_pacman(["-Qkk", *args.verify], timeout=args.timeout,
+                          quiet=args.quiet, verbose=args.verbose,
+                          no_confirm=False, ignore_keys=False)
     if args.backup is not None or args.export is not None:
         write_manifest(Path(args.backup if args.backup is not None else args.export))
         return 0
@@ -278,6 +321,11 @@ def main(argv: list[str]) -> int:
     else:
         operation = ["-Q"]
 
+    if args.force:
+        operation.extend(["--overwrite", "*"])
+    if args.preview:
+        operation.append("--print")
+        print("Preview only: no package transaction will be applied.", file=sys.stderr)
     return run_pacman(
         operation, timeout=args.timeout, quiet=args.quiet, verbose=args.verbose,
         no_confirm=args.no_confirm, ignore_keys=args.ignore_keys,
