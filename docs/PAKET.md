@@ -15,6 +15,12 @@ Build with `sudo ./build.sh --manager paket` or choose option 2 in the interacti
 | --- | --- |
 | `paket -I package...` | Install packages (Pacman `-S --needed`) |
 | `paket -S` | Refresh repository databases and perform a full upgrade (`pacman -Syu`) |
+| `paket -ISu`, `paket -Su`, `paket -Syu` | Compact aliases for a full system update |
+| `paket -Sy` | Refresh repository databases without upgrading |
+| `paket -Syy` | Force-refresh all repository databases |
+| `paket -Syyu` | Force-refresh databases, then upgrade the whole system |
+| `paket -IVN package...` | Install packages with verbose output and no confirmation |
+| `paket -IR...` | Not a valid combined operation; choose one operation at a time |
 | `paket -R package...` | Remove packages |
 | `paket -Rdd package...` | Remove packages while skipping dependency checks; dangerous |
 | `paket -B [file]` | Back up the explicitly installed package list |
@@ -45,6 +51,8 @@ sudo paket -Rdd package-name
 sudo paket -T 900 -I large-package
 sudo paket -N -I package-name
 ```
+
+Compact command combinations are supported for common maintenance workflows. `-ISu` is a Paket-friendly alias for a full system update; `-Su` and Pacman-familiar `-Syu` do the same. `-Sy` refreshes databases only, while `-Syyu` forces a database refresh before upgrading. Modifier clusters can be appended to install, remove, or search operations: for example, `-IVN` means install + verbose + no confirmation. Paket still permits exactly one main operation per invocation; do not combine unrelated operations into one cluster.
 
 A JSONL5 manifest is one JSON object per line, using the `.jsonl5` extension. For example:
 
